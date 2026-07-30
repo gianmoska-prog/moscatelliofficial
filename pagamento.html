@@ -67,8 +67,8 @@
     .reveal {
       opacity: 0;
       transform: translateY(20px);
-      transition: opacity 1.4s cubic-bezier(0.16,1,0.3,1),
-                  transform 1.4s cubic-bezier(0.16,1,0.3,1);
+      transition: opacity 0.72s cubic-bezier(0.16,1,0.3,1),
+                  transform 0.72s cubic-bezier(0.16,1,0.3,1);
     }
     .reveal.in { opacity: 1; transform: translateY(0); }
 
@@ -172,6 +172,30 @@
       grid-template-columns: 1fr auto;
       gap: 24px;
       align-items: start;
+    }
+
+    .summary-product-media {
+      position: relative;
+      height: 190px;
+      margin-bottom: 28px;
+      overflow: hidden;
+      border: 1px solid var(--wr);
+      background: #090909;
+    }
+    .summary-product-media img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 34%;
+      display: block;
+      filter: saturate(0.72) contrast(1.04);
+    }
+    .summary-product-media::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      box-shadow: inset 0 0 70px rgba(0,0,0,0.28);
+      pointer-events: none;
     }
 
     .product-name {
@@ -455,6 +479,36 @@
       color: rgba(243,237,224,0.18);
       text-transform: uppercase;
     }
+    .checkout-assurance {
+      margin-top: 28px;
+      padding-top: 24px;
+      border-top: 1px solid var(--wr);
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+    .assurance-item {
+      font-size: 11px;
+      line-height: 1.65;
+      color: rgba(243,237,224,0.55);
+    }
+    .assurance-item strong {
+      display: block;
+      margin-bottom: 4px;
+      font-family: 'Cinzel', serif;
+      font-size: 8px;
+      font-weight: 400;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(243,237,224,0.74);
+    }
+    .checkout-guidance {
+      margin-top: -14px;
+      margin-bottom: 28px;
+      font-size: 13px;
+      line-height: 1.7;
+      color: rgba(243,237,224,0.56);
+    }
 
     /* ── Success state ───────────────────────────────────────── */
     #success-panel {
@@ -585,10 +639,28 @@
       nav, nav.scrolled { padding: 18px 18px !important; }
       .nav-emblem { width: 40px; }
       .form-row { grid-template-columns: 1fr; gap: 8px; padding: 16px 0; }
-      .form-lbl { font-size: 7px; }
+      .form-lbl { font-size: 10px; color: rgba(243,237,224,0.62); }
+      .form-section-title,
+      .stripe-section-title { font-size: 10px; color: rgba(243,237,224,0.56); }
+      .form-ctrl::placeholder { color: rgba(243,237,224,0.46); }
+      .summary-product-media { height: 170px; }
+      .checkout-assurance { grid-template-columns: 1fr; gap: 14px; }
       footer { padding: 36px 18px; }
       .foot-inner { flex-direction: column; gap: 16px; align-items: flex-start; }
       .demo-notice { display: none; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-delay: 0ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+      }
+      .reveal { opacity: 1; transform: none; }
+      .rr-pointer-light { display: none !important; }
     }
 
     /* ── Custom cursor ───────────────────────────────────────── */
@@ -660,6 +732,10 @@
       <div class="summary">
         <span class="summary-label reveal">Riepilogo Ordine</span>
 
+        <div class="summary-product-media reveal">
+          <img src="images/collection-bianco-avorio.webp" alt="Sciarpa Moscatelli in baby alpaca, Bianco Avorio" decoding="async" />
+        </div>
+
         <div class="summary-product reveal">
           <div>
             <div class="product-name">Sciarpa Baby Alpaca</div>
@@ -704,35 +780,36 @@
 
         <!-- Contact + shipping fields -->
         <span class="form-section-title">Dati di Contatto</span>
+        <p class="checkout-guidance">Indicare il paese di consegna per calcolare la spedizione e visualizzare le modalità di pagamento disponibili.</p>
 
         <form id="checkout-form">
           <div class="form-row">
-            <label class="form-lbl">Nome e Cognome</label>
+            <label class="form-lbl" for="field-name">Nome e Cognome</label>
             <input class="form-ctrl" id="field-name" type="text" placeholder="Come si chiama" autocomplete="name" required />
           </div>
           <div class="form-row">
-            <label class="form-lbl">Posta Elettronica</label>
+            <label class="form-lbl" for="field-email">Posta Elettronica</label>
             <input class="form-ctrl" id="field-email" type="email" placeholder="Per la conferma d'ordine" autocomplete="email" required />
           </div>
           <div class="form-row">
-            <label class="form-lbl">Telefono</label>
+            <label class="form-lbl" for="field-phone">Telefono</label>
             <input class="form-ctrl" id="field-phone" type="tel" placeholder="Opzionale" autocomplete="tel" />
           </div>
 
           <div class="form-row" style="margin-top: 8px;">
-            <label class="form-lbl">Indirizzo</label>
+            <label class="form-lbl" for="field-address">Indirizzo</label>
             <input class="form-ctrl" id="field-address" type="text" placeholder="Via, numero civico" autocomplete="street-address" required />
           </div>
           <div class="form-row">
-            <label class="form-lbl">Città</label>
+            <label class="form-lbl" for="field-city">Città</label>
             <input class="form-ctrl" id="field-city" type="text" placeholder="Città" autocomplete="address-level2" required />
           </div>
           <div class="form-row">
-            <label class="form-lbl">CAP</label>
+            <label class="form-lbl" for="field-postcode">CAP</label>
             <input class="form-ctrl" id="field-postcode" type="text" placeholder="Codice postale" autocomplete="postal-code" required />
           </div>
           <div class="form-row">
-            <label class="form-lbl">Paese</label>
+            <label class="form-lbl" for="field-country">Paese</label>
             <select class="form-ctrl" id="field-country" autocomplete="country" required>
               <option value="" disabled selected>Selezionare</option>
               <option value="IT">Italia</option>
@@ -764,7 +841,7 @@
           </div>
 
           <!-- Error -->
-          <div id="payment-message"></div>
+          <div id="payment-message" role="alert" aria-live="assertive"></div>
 
           <!-- Submit -->
           <button class="btn-submit" id="submit-btn" type="submit" disabled>
@@ -775,6 +852,11 @@
 
           <div class="secure-note">
             <span class="secure-note-txt">Pagamento sicuro — Stripe</span>
+          </div>
+          <div class="checkout-assurance" aria-label="Informazioni sull'ordine">
+            <div class="assurance-item"><strong>Consegna</strong>Spedizione tracciata entro 5–7 giorni lavorativi.</div>
+            <div class="assurance-item"><strong>Assistenza</strong>Risposta personale dalla Maison.</div>
+            <div class="assurance-item"><strong>Sicurezza</strong>Pagamento cifrato gestito da Stripe.</div>
           </div>
         </form>
 
@@ -1110,7 +1192,8 @@
       const pointer = document.querySelector('.rr-pointer-light');
       if (!pointer) return;
       const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
-      if (!finePointer) return;
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (!finePointer || reducedMotion) return;
       document.documentElement.classList.add('has-rr-pointer-light');
       const hoverSelectors = 'a,button,[role="button"],input,select,textarea,[onclick]';
       let mouseX = window.innerWidth / 2, mouseY = window.innerHeight / 2;
