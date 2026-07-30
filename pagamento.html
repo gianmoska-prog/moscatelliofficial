@@ -164,6 +164,112 @@
       opacity: 0.8;
     }
 
+    .variant-selector {
+      border: 0;
+      margin: 0 0 28px;
+      padding: 0;
+    }
+    .variant-legend {
+      width: 100%;
+      margin-bottom: 14px;
+      font-size: 8.5px;
+      letter-spacing: 0.36em;
+      text-transform: uppercase;
+      color: rgba(243,237,224,0.54);
+    }
+    .variant-options {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .variant-option {
+      position: relative;
+      display: block;
+      cursor: pointer;
+    }
+    .variant-option input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .variant-card {
+      display: block;
+      overflow: hidden;
+      border: 1px solid rgba(236,227,209,0.08);
+      background: rgba(255,255,255,0.012);
+      transition: border-color 0.35s ease, background 0.35s ease, transform 0.35s ease;
+    }
+    .variant-option:hover .variant-card {
+      border-color: rgba(176,146,104,0.30);
+      transform: translateY(-1px);
+    }
+    .variant-option input:focus-visible + .variant-card {
+      outline: 1px solid rgba(236,227,209,0.45);
+      outline-offset: 3px;
+    }
+    .variant-option input:checked + .variant-card {
+      border-color: rgba(176,146,104,0.50);
+      background: rgba(138,116,79,0.07);
+    }
+    .variant-thumb {
+      display: block;
+      height: 94px;
+      overflow: hidden;
+      background: #090909;
+    }
+    .variant-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 38%;
+      display: block;
+      filter: saturate(0.72) contrast(1.04);
+      transition: transform 0.55s cubic-bezier(0.16,1,0.3,1), opacity 0.35s ease;
+    }
+    .variant-option:hover .variant-thumb img { transform: scale(1.025); }
+    .variant-copy {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 13px;
+    }
+    .variant-name {
+      font-family: 'Cinzel', serif;
+      font-size: 8px;
+      line-height: 1.5;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(243,237,224,0.64);
+    }
+    .variant-mark {
+      flex: 0 0 auto;
+      width: 7px;
+      height: 7px;
+      border: 1px solid rgba(243,237,224,0.30);
+      border-radius: 50%;
+      transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    .variant-option input:checked + .variant-card .variant-name { color: rgba(243,237,224,0.90); }
+    .variant-option input:checked + .variant-card .variant-mark {
+      border-color: rgba(176,146,104,0.90);
+      background: rgba(176,146,104,0.90);
+      box-shadow: 0 0 0 3px rgba(176,146,104,0.10);
+    }
+    .visually-hidden {
+      position: absolute !important;
+      width: 1px !important;
+      height: 1px !important;
+      padding: 0 !important;
+      margin: -1px !important;
+      overflow: hidden !important;
+      clip: rect(0,0,0,0) !important;
+      white-space: nowrap !important;
+      border: 0 !important;
+    }
+
     .summary-product {
       border-top: 1px solid var(--wr2);
       border-bottom: 1px solid var(--wr2);
@@ -644,6 +750,9 @@
       .stripe-section-title { font-size: 10px; color: rgba(243,237,224,0.56); }
       .form-ctrl::placeholder { color: rgba(243,237,224,0.46); }
       .summary-product-media { height: 170px; }
+      .variant-thumb { height: 82px; }
+      .variant-copy { padding: 12px 10px; }
+      .variant-name { font-size: 7.5px; letter-spacing: 0.14em; }
       .checkout-assurance { grid-template-columns: 1fr; gap: 14px; }
       footer { padding: 36px 18px; }
       .foot-inner { flex-direction: column; gap: 16px; align-items: flex-start; }
@@ -732,8 +841,29 @@
       <div class="summary">
         <span class="summary-label reveal">Riepilogo Ordine</span>
 
+        <fieldset class="variant-selector reveal">
+          <legend class="variant-legend">Selezionare il colore</legend>
+          <div class="variant-options">
+            <label class="variant-option">
+              <input type="radio" name="variant" value="bianco-avorio" checked />
+              <span class="variant-card">
+                <span class="variant-thumb"><img src="images/collection-bianco-avorio.webp" alt="" decoding="async" /></span>
+                <span class="variant-copy"><span class="variant-name">Bianco Avorio</span><span class="variant-mark" aria-hidden="true"></span></span>
+              </span>
+            </label>
+            <label class="variant-option">
+              <input type="radio" name="variant" value="terra-bruna" />
+              <span class="variant-card">
+                <span class="variant-thumb"><img src="images/collection-terra-bruna.webp" alt="" decoding="async" /></span>
+                <span class="variant-copy"><span class="variant-name">Terra Bruna</span><span class="variant-mark" aria-hidden="true"></span></span>
+              </span>
+            </label>
+          </div>
+          <p class="visually-hidden" id="variant-status" role="status" aria-live="polite">Bianco Avorio selezionato</p>
+        </fieldset>
+
         <div class="summary-product-media reveal">
-          <img src="images/collection-bianco-avorio.webp" alt="Sciarpa Moscatelli in baby alpaca, Bianco Avorio" decoding="async" />
+          <img id="summary-product-image" src="images/collection-bianco-avorio.webp" alt="Sciarpa Moscatelli in baby alpaca, Bianco Avorio" decoding="async" />
         </div>
 
         <div class="summary-product reveal">
@@ -741,12 +871,12 @@
             <div class="product-name">Sciarpa Baby Alpaca</div>
             <div class="product-detail">
               Nm 2/40 · Orlo a giorno eseguito a mano<br />
-              Bianco Avorio
+              <span id="product-variant-name">Bianco Avorio</span>
             </div>
             <span class="product-lot">Lotto I · MMXXVI · Edizione Limitata</span>
           </div>
           <div>
-            <div class="product-price">€ 890</div>
+            <div class="product-price">€ 350</div>
             <span class="product-price-note">IVA inclusa</span>
           </div>
         </div>
@@ -754,7 +884,7 @@
         <div class="summary-totals reveal">
           <div class="total-row">
             <span class="total-lbl">Subtotale</span>
-            <span class="total-val">€ 890,00</span>
+            <span class="total-val">€ 350,00</span>
           </div>
           <div class="total-row">
             <span class="total-lbl">Spedizione</span>
@@ -762,7 +892,7 @@
           </div>
           <div class="total-row grand">
             <span class="total-lbl">Totale</span>
-            <span class="total-val" id="grand-total">€ 890,00</span>
+            <span class="total-val" id="grand-total">€ 350,00</span>
           </div>
         </div>
 
@@ -932,13 +1062,57 @@
       AU: { label: '€ 28,00', amount: 28 },
     };
 
-    const BASE_PRICE = 890;
-    document.getElementById('field-country').addEventListener('change', function () {
+    const BASE_PRICE = 350;
+    const VARIANTS = Object.freeze({
+      'bianco-avorio': {
+        name: 'Bianco Avorio',
+        image: 'images/collection-bianco-avorio.webp',
+        alt: 'Sciarpa Moscatelli in baby alpaca, Bianco Avorio',
+      },
+      'terra-bruna': {
+        name: 'Terra Bruna',
+        image: 'images/collection-terra-bruna.webp',
+        alt: 'Sciarpa Moscatelli in baby alpaca, Terra Bruna',
+      },
+    });
+
+    const countryField = document.getElementById('field-country');
+    const variantInputs = [...document.querySelectorAll('input[name="variant"]')];
+    const selectedVariant = () => document.querySelector('input[name="variant"]:checked').value;
+
+    function displayVariant(variantKey, refreshPayment = true) {
+      const variant = VARIANTS[variantKey];
+      if (!variant) return;
+
+      const productImage = document.getElementById('summary-product-image');
+      productImage.src = variant.image;
+      productImage.alt = variant.alt;
+      document.getElementById('product-variant-name').textContent = variant.name;
+      document.getElementById('variant-status').textContent = `${variant.name} selezionato`;
+
+      const rate = shippingRates[countryField.value];
+      if (refreshPayment && rate) {
+        initialiseStripe(countryField.value, BASE_PRICE + rate.amount, variantKey);
+      }
+    }
+
+    const requestedVariant = new URLSearchParams(window.location.search).get('variant');
+    if (VARIANTS[requestedVariant]) {
+      const requestedInput = document.querySelector(`input[name="variant"][value="${requestedVariant}"]`);
+      requestedInput.checked = true;
+    }
+    displayVariant(selectedVariant(), false);
+
+    variantInputs.forEach(input => {
+      input.addEventListener('change', () => displayVariant(input.value));
+    });
+
+    countryField.addEventListener('change', function () {
       const rate = shippingRates[this.value];
       if (rate) {
         document.getElementById('shipping-val').textContent = rate.label;
         document.getElementById('grand-total').textContent = `€ ${(BASE_PRICE + rate.amount).toFixed(2).replace('.', ',')}`;
-        initialiseStripe(this.value, BASE_PRICE + rate.amount);
+        initialiseStripe(this.value, BASE_PRICE + rate.amount, selectedVariant());
       }
     });
 
@@ -949,6 +1123,7 @@
 
     let elements;
     let paymentElement;
+    let stripeInitSequence = 0;
 
     // Stripe Elements appearance — tuned to Moscatelli's design system
     const appearance = {
@@ -1056,7 +1231,8 @@
       }
     };
 
-    async function initialiseStripe(country, totalAmount) {
+    async function initialiseStripe(country, totalAmount, variant) {
+      const sequence = ++stripeInitSequence;
       const loader = document.getElementById('stripe-loader');
       loader.style.display = 'flex';
       loader.querySelector('span').textContent = 'Caricamento';
@@ -1072,12 +1248,13 @@
         const response = await fetch('/.netlify/functions/create-payment-intent', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ country }),
+          body: JSON.stringify({ country, variant }),
         });
 
         if (!response.ok) throw new Error('Function not available');
 
         const { clientSecret } = await response.json();
+        if (sequence !== stripeInitSequence) return;
 
         elements = stripe.elements({ appearance, clientSecret });
         paymentElement = elements.create('payment', {
@@ -1093,6 +1270,7 @@
         });
 
       } catch (err) {
+        if (sequence !== stripeInitSequence) return;
         // Netlify function not set up yet — mount in demo/setup-intent mode
         console.warn('PaymentIntent not available, mounting in setup mode:', err.message);
         mountDemoElements(totalAmount);

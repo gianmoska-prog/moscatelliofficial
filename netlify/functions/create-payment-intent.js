@@ -17,7 +17,11 @@
 
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
-const BASE_PRICE_CENTS = 89000;
+const BASE_PRICE_CENTS = 35000;
+const VARIANTS = Object.freeze({
+  'bianco-avorio': 'Bianco Avorio',
+  'terra-bruna': 'Terra Bruna',
+});
 const SHIPPING_RATES_CENTS = Object.freeze({
   IT: 1200,
   CH: 1800,
@@ -40,8 +44,9 @@ exports.handler = async (event) => {
   }
 
   try {
-    const { country } = JSON.parse(event.body || '{}');
+    const { country, variant = 'bianco-avorio' } = JSON.parse(event.body || '{}');
     const shippingCents = SHIPPING_RATES_CENTS[country];
+    const variantName = VARIANTS[variant];
 
     if (shippingCents === undefined) {
       return {
@@ -51,15 +56,23 @@ exports.handler = async (event) => {
       };
     }
 
+    if (!variantName) {
+      return {
+        statusCode: 400,
+        headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
+        body: JSON.stringify({ error: 'Unsupported product variant' }),
+      };
+    }
+
     const paymentIntent = await stripe.paymentIntents.create({
       // Price and shipping are calculated here, never accepted from the browser.
       amount:      BASE_PRICE_CENTS + shippingCents,
       currency:    'eur',
-      description: 'Moscatelli — Lotto I, Sciarpa Baby Alpaca, Bianco Avorio',
+      description: `Moscatelli — Lotto I, Sciarpa Baby Alpaca, ${variantName}`,
       automatic_payment_methods: { enabled: true },
       metadata: {
         product:    'Lotto I — Sciarpa Baby Alpaca',
-        collection: 'Bianco Avorio',
+        collection: variantName,
         maison:     'Moscatelli',
         shipping_country: country,
       },

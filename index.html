@@ -1927,11 +1927,17 @@
   .hero-acquire:hover,
   .c-purchase:hover { color: var(--gold-warm); }
   .c-purchase {
-    margin-top: 28px;
+    margin-top: 18px;
     padding-bottom: 7px;
     border-bottom: 1px solid rgba(176,146,104,0.36);
     font-size: 9px;
     letter-spacing: 0.30em;
+  }
+  .c-meta-price {
+    margin-top: 22px;
+    font-size: 14px;
+    letter-spacing: 0.12em;
+    color: rgba(243,237,224,0.68);
   }
   .menu-link,
   .menu-link-sm { color: rgba(243,237,224,0.74); }
@@ -1959,9 +1965,9 @@
   @media (max-width: 720px) {
     .hero-mark { width: calc(100vw - 36px); }
     .hero-mark-word {
-      font-size: clamp(25px, 8.5vw, 34px);
-      letter-spacing: 0.14em;
-      text-indent: 0.14em;
+      font-size: clamp(23px, 6.7vw, 28px);
+      letter-spacing: 0.48em;
+      text-indent: 0.48em;
     }
     .hero-actions { gap: 18px; }
     .hero-discover,
@@ -2112,7 +2118,8 @@
           <div class="c-meta">
             <div class="c-meta-name">Bianco Avorio</div>
             <div class="c-meta-detail">Baby Alpaca · Nm 2/40 · Orlo a giorno</div>
-            <a class="c-purchase" href="pagamento.html" data-i18n-it="Acquisire il Lotto" data-i18n-en="Acquire the Lot">Acquisire il Lotto</a>
+            <div class="c-meta-price">€ 350</div>
+            <a class="c-purchase" href="pagamento.html?variant=bianco-avorio" data-i18n-it="Acquisire il Lotto" data-i18n-en="Acquire the Lot">Acquisire il Lotto</a>
           </div>
         </div>
         <div class="c-item reveal">
@@ -2123,6 +2130,8 @@
           <div class="c-meta">
             <div class="c-meta-name">Terra Bruna</div>
             <div class="c-meta-detail">Baby Alpaca · Nm 2/40 · Orlo a giorno</div>
+            <div class="c-meta-price">€ 350</div>
+            <a class="c-purchase" href="pagamento.html?variant=terra-bruna" data-i18n-it="Acquisire il Lotto" data-i18n-en="Acquire the Lot">Acquisire il Lotto</a>
           </div>
         </div>
       </div>
