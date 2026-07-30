@@ -76,8 +76,8 @@
     .reveal {
       opacity: 0;
       transform: translateY(20px);
-      transition: opacity 1.4s cubic-bezier(0.16,1,0.3,1),
-                  transform 1.4s cubic-bezier(0.16,1,0.3,1);
+      transition: opacity 0.72s cubic-bezier(0.16,1,0.3,1),
+                  transform 0.72s cubic-bezier(0.16,1,0.3,1);
     }
     .reveal.in { opacity: 1; transform: translateY(0); }
     /* Fallback: if JS hasn't run within 1.5s, reveal everything */
@@ -1891,6 +1891,106 @@
     }
   }
 
+  /* Usability refinements — preserve the editorial direction while making
+     commercial and functional controls easier to discover and read. */
+  .hero-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+  }
+  .hero-actions::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 1px;
+    height: 12px;
+    background: rgba(227,218,199,0.24);
+    transform: translate(-50%, -50%);
+  }
+  .hero-acquire,
+  .c-purchase {
+    display: inline-block;
+    font-family: 'Cormorant Garamond', serif;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: rgba(227,218,199,0.82);
+    transition: color 0.45s cubic-bezier(0.16,1,0.3,1), border-color 0.45s cubic-bezier(0.16,1,0.3,1);
+  }
+  .hero-acquire {
+    padding: 10px 6px 13px;
+    margin: -10px -6px -13px;
+    font-size: 11px;
+    letter-spacing: 0.42em;
+  }
+  .hero-acquire:hover,
+  .c-purchase:hover { color: var(--gold-warm); }
+  .c-purchase {
+    margin-top: 28px;
+    padding-bottom: 7px;
+    border-bottom: 1px solid rgba(176,146,104,0.36);
+    font-size: 9px;
+    letter-spacing: 0.30em;
+  }
+  .menu-link,
+  .menu-link-sm { color: rgba(243,237,224,0.74); }
+  .menu-col-label,
+  .form-lbl { color: rgba(243,237,224,0.62); }
+  .form-ctrl::placeholder { color: rgba(243,237,224,0.46); }
+  .form-status {
+    min-height: 22px;
+    margin-top: 18px;
+    font-size: 13px;
+    font-style: italic;
+    color: rgba(243,237,224,0.66);
+  }
+  .form-status.is-error { color: rgba(220,150,140,0.90); }
+  .form-status.is-success { color: rgba(176,146,104,0.95); }
+  .hp-field {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    overflow: hidden !important;
+    clip: rect(0 0 0 0) !important;
+    white-space: nowrap !important;
+  }
+
+  @media (max-width: 720px) {
+    .hero-mark { width: calc(100vw - 36px); }
+    .hero-mark-word {
+      font-size: clamp(25px, 8.5vw, 34px);
+      letter-spacing: 0.14em;
+      text-indent: 0.14em;
+    }
+    .hero-actions { gap: 18px; }
+    .hero-discover,
+    .hero-acquire {
+      font-size: 8px;
+      letter-spacing: 0.20em;
+    }
+    .menu-link { color: rgba(243,237,224,0.82); }
+    .menu-link-sm { color: rgba(243,237,224,0.68); }
+    .form-lbl {
+      font-size: 10px;
+      color: rgba(243,237,224,0.64);
+    }
+    .form-send-txt { font-size: 10px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-delay: 0ms !important;
+      animation-iteration-count: 1 !important;
+      scroll-behavior: auto !important;
+      transition-duration: 0.01ms !important;
+    }
+    .reveal { opacity: 1; transform: none; }
+    .rr-pointer-light { display: none !important; }
+  }
+
 </style>
 </head>
 <body>
@@ -1904,8 +2004,8 @@
         <span class="lang-sep">/</span>
         <button class="lang-btn" type="button" data-lang="en" aria-pressed="false">EN</button>
       </div>
-      <button class="menu-btn" id="menu-btn" aria-label="Apri menu">Menu</button>
-      <button class="hamburger" id="hamburger" aria-label="Apri menu">
+      <button class="menu-btn" id="menu-btn" aria-label="Apri menu" aria-controls="menu-overlay" aria-expanded="false">Menu</button>
+      <button class="hamburger" id="hamburger" aria-label="Apri menu" aria-controls="menu-overlay" aria-expanded="false">
         <span></span><span></span><span></span>
       </button>
     </div>
@@ -1924,6 +2024,7 @@
       <div class="menu-col menu-col-right">
         <span class="menu-col-label" data-i18n-it="Collezione" data-i18n-en="Collection">Collezione</span>
         <a class="menu-link-sm" href="#collection" data-i18n-it="Lotto I — Sciarpa Baby Alpaca" data-i18n-en="Lot I — Baby Alpaca Scarf">Lotto I — Sciarpa Baby Alpaca</a>
+        <a class="menu-link-sm" href="pagamento.html" data-i18n-it="Acquisire il Lotto" data-i18n-en="Acquire the Lot">Acquisire il Lotto</a>
         <a class="menu-link-sm" href="#su-misura" data-i18n-it="Su Misura" data-i18n-en="Bespoke">Su Misura</a>
       </div>
     </div>
@@ -1943,8 +2044,9 @@
 
     <!-- Product identity — bottom-anchored -->
     <div class="hero-content">
-      <div class="hero-foot">
+      <div class="hero-foot hero-actions">
         <a href="#collection" class="hero-discover" data-i18n-it="Esplorare la Collezione" data-i18n-en="Explore the Collection">Esplorare la Collezione</a>
+        <a href="pagamento.html" class="hero-acquire" data-i18n-it="Acquisire il Lotto" data-i18n-en="Acquire the Lot">Acquisire il Lotto</a>
       </div>
     </div>
 
@@ -1965,7 +2067,7 @@
   <!-- ── Manifesto ─────────────────────────────────────────── -->
   <section class="manifesto" id="manifesto">
     <div class="mf-img">
-      <img class="mf-img-photo" src="images/manifesto-terra-bruna.webp" alt="Sciarpa baby alpaca Moscatelli su travertino" />
+      <img class="mf-img-photo" src="images/manifesto-terra-bruna.webp" alt="Sciarpa baby alpaca Moscatelli su travertino" decoding="async" />
       <span class="mf-img-caption">Manufattura Moscatelli · Roma</span>
     </div>
     <div class="mf-text">
@@ -2004,17 +2106,18 @@
       <div class="col-grid">
         <div class="c-item reveal">
           <div class="c-visual">
-            <img class="c-photo" src="images/collection-bianco-avorio.webp" alt="Bianco Avorio" />
+            <img class="c-photo" src="images/collection-bianco-avorio.webp" alt="Sciarpa Moscatelli Bianco Avorio" loading="lazy" decoding="async" />
             <div class="c-veil"></div>
           </div>
           <div class="c-meta">
             <div class="c-meta-name">Bianco Avorio</div>
             <div class="c-meta-detail">Baby Alpaca · Nm 2/40 · Orlo a giorno</div>
+            <a class="c-purchase" href="pagamento.html" data-i18n-it="Acquisire il Lotto" data-i18n-en="Acquire the Lot">Acquisire il Lotto</a>
           </div>
         </div>
         <div class="c-item reveal">
           <div class="c-visual">
-            <img class="c-photo" src="images/collection-terra-bruna.webp" alt="Terra Bruna" />
+            <img class="c-photo" src="images/collection-terra-bruna.webp" alt="Sciarpa Moscatelli Terra Bruna" loading="lazy" decoding="async" />
             <div class="c-veil"></div>
           </div>
           <div class="c-meta">
@@ -2136,18 +2239,23 @@
         <a href="mailto:casa@moscatelli.co" class="btn-line" data-i18n-it="Scrivere alla Maison" data-i18n-en="Write to the Maison">Scrivere alla Maison</a>
       </div>
 
-      <form class="cons-form reveal" onsubmit="return false;">
+      <form class="cons-form reveal" id="consultation-form" name="consultation" method="POST" data-netlify="true" netlify-honeypot="company">
+        <input type="hidden" name="form-name" value="consultation" />
+        <p class="hp-field">
+          <label for="consultation-company">Non compilare questo campo</label>
+          <input id="consultation-company" name="company" type="text" tabindex="-1" autocomplete="off" />
+        </p>
         <div class="form-row">
-          <label class="form-lbl">Nome e Cognome</label>
-          <input class="form-ctrl" type="text" placeholder="Come si chiama" autocomplete="off" />
+          <label class="form-lbl" for="consultation-name">Nome e Cognome</label>
+          <input class="form-ctrl" id="consultation-name" name="name" type="text" placeholder="Come si chiama" autocomplete="name" required />
         </div>
         <div class="form-row">
-          <label class="form-lbl">Posta Elettronica</label>
-          <input class="form-ctrl" type="email" placeholder="Per la corrispondenza" autocomplete="off" />
+          <label class="form-lbl" for="consultation-email">Posta Elettronica</label>
+          <input class="form-ctrl" id="consultation-email" name="email" type="email" placeholder="Per la corrispondenza" autocomplete="email" required />
         </div>
         <div class="form-row">
-          <label class="form-lbl">Oggetto</label>
-          <select class="form-ctrl">
+          <label class="form-lbl" for="consultation-subject">Oggetto</label>
+          <select class="form-ctrl" id="consultation-subject" name="subject" required>
             <option value="" disabled selected>Selezionare</option>
             <option>Lotto I — Sciarpa Baby Alpaca</option>
             <option>Su Misura</option>
@@ -2156,13 +2264,14 @@
           </select>
         </div>
         <div class="form-row" style="align-items:start; padding-top:28px;">
-          <label class="form-lbl" style="padding-top:3px;">Messaggio</label>
-          <textarea class="form-ctrl" placeholder="Descrivere la richiesta con precisione."></textarea>
+          <label class="form-lbl" for="consultation-message" style="padding-top:3px;">Messaggio</label>
+          <textarea class="form-ctrl" id="consultation-message" name="message" placeholder="Descrivere la richiesta con precisione." required></textarea>
         </div>
         <button class="form-send" type="submit">
           <span class="form-send-txt">Inviare la Richiesta</span>
           <span class="form-send-arrow">→</span>
         </button>
+        <p class="form-status" id="consultation-status" role="status" aria-live="polite"></p>
       </form>
     </div>
   </section>
@@ -2230,8 +2339,12 @@
       if (menuBtn) {
         menuBtn.textContent = getMenuUiText(open);
         menuBtn.setAttribute('aria-label', getMenuUiLabel(open));
+        menuBtn.setAttribute('aria-expanded', String(open));
       }
-      if (hamburger) hamburger.setAttribute('aria-label', getMenuUiLabel(open));
+      if (hamburger) {
+        hamburger.setAttribute('aria-label', getMenuUiLabel(open));
+        hamburger.setAttribute('aria-expanded', String(open));
+      }
     }
 
     function toggleMenu() {
@@ -2285,6 +2398,41 @@
     setTimeout(() => {
       document.querySelectorAll('.reveal:not(.in)').forEach(el => el.classList.add('in'));
     }, 1500);
+
+    // Submit private consultation requests through Netlify Forms.
+    const consultationForm = document.getElementById('consultation-form');
+    const consultationStatus = document.getElementById('consultation-status');
+    if (consultationForm && consultationStatus) {
+      consultationForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const submitButton = consultationForm.querySelector('button[type="submit"]');
+        const isEnglish = document.documentElement.lang === 'en';
+        consultationStatus.className = 'form-status';
+        consultationStatus.textContent = isEnglish ? 'Sending your request…' : 'Invio della richiesta…';
+        submitButton.disabled = true;
+
+        try {
+          const response = await fetch('/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams(new FormData(consultationForm)).toString(),
+          });
+          if (!response.ok) throw new Error('Form submission failed');
+          consultationForm.reset();
+          consultationStatus.classList.add('is-success');
+          consultationStatus.textContent = isEnglish
+            ? 'Your request has been received. The Maison will reply personally.'
+            : 'La richiesta è stata ricevuta. La Maison risponderà personalmente.';
+        } catch (error) {
+          consultationStatus.classList.add('is-error');
+          consultationStatus.textContent = isEnglish
+            ? 'The request could not be sent. Please write to casa@moscatelli.co.'
+            : 'Non è stato possibile inviare la richiesta. Scrivere a casa@moscatelli.co.';
+        } finally {
+          submitButton.disabled = false;
+        }
+      });
+    }
 
   </script>
 
@@ -2624,7 +2772,8 @@
       if (!pointer) return;
 
       const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
-      if (!finePointer) return;
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (!finePointer || reducedMotion) return;
 
       document.documentElement.classList.add('has-rr-pointer-light');
 
