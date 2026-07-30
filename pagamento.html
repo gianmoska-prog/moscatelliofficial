@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Moscatelli — Acquisto</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&display=swap" rel="stylesheet" />
+  <script src="https://js.stripe.com/v3/"></script>
+
+  <style>
+    /* ── Variables ─────────────────────────────────────────── */
+    :root {
+      --black:       #0E0D0B;
+      --black-2:     #14120F;
+      --black-3:     #1B1814;
+      --ivory:       #ECE3D1;
+      --ivory-deep:  #211813;
+      --charcoal:    #232320;
+      --charcoal-2:  #4A4A44;
+      --charcoal-3:  #7C7C74;
+      --gold:        #8A744F;
+      --gold-warm:   #B09268;
+      --rule:        rgba(35,35,32,0.10);
+      --rule-f:      rgba(35,35,32,0.05);
+      --wr:          rgba(236,227,209,0.06);
+      --wr2:         rgba(236,227,209,0.11);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; scroll-behavior: smooth; overflow-x: hidden; }
+    body {
+      background: var(--black);
+      color: var(--ivory);
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-weight: 300;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+    ::selection { background: var(--ivory); color: var(--black); }
+
+    a, button { -webkit-tap-highlight-color: transparent; }
+    a:focus, button:focus { outline: none; }
+    a:focus-visible, button:focus-visible {
+      outline: 1px solid rgba(236,227,209,0.35);
+      outline-offset: 3px;
+    }
+    ::-webkit-scrollbar { width: 1px; }
+    ::-webkit-scrollbar-track { background: var(--black); }
+    ::-webkit-scrollbar-thumb { background: #3a3a36; }
+
+    /* Film grain */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 0.028;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+      background-size: 200px 200px;
+    }
+
+    /* ── Reveal ─────────────────────────────────────────────── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 1.4s cubic-bezier(0.16,1,0.3,1),
+                  transform 1.4s cubic-bezier(0.16,1,0.3,1);
+    }
+    .reveal.in { opacity: 1; transform: translateY(0); }
+
+    /* ── Navigation ─────────────────────────────────────────── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 600;
+      padding: 38px 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: padding 1.15s cubic-bezier(0.16,1,0.3,1),
+                  background 1.15s cubic-bezier(0.16,1,0.3,1),
+                  border-color 1.15s cubic-bezier(0.16,1,0.3,1);
+      border-bottom: 1px solid transparent;
+    }
+    nav.scrolled {
+      padding: 22px 56px;
+      background: rgba(8,8,8,0.46);
+      backdrop-filter: blur(16px) saturate(0.8);
+      -webkit-backdrop-filter: blur(16px) saturate(0.8);
+      border-bottom-color: var(--wr);
+    }
+
+    .nav-emblem {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 3;
+      width: 62px;
+      aspect-ratio: 1 / 1;
+      display: block;
+      text-decoration: none;
+      background-color: rgba(227,218,199,0.88);
+      -webkit-mask-image: url('images/monogram-mask.png');
+      mask-image: url('images/monogram-mask.png');
+      -webkit-mask-repeat: no-repeat;
+      mask-repeat: no-repeat;
+      -webkit-mask-position: center;
+      mask-position: center;
+      -webkit-mask-size: contain;
+      mask-size: contain;
+      pointer-events: auto;
+      cursor: pointer;
+      opacity: 0.45;
+      transition: opacity 1.35s cubic-bezier(0.16,1,0.3,1);
+    }
+    nav.scrolled .nav-emblem { opacity: 1; filter: brightness(1.08); }
+    .nav-emblem:hover { background-color: rgba(227,218,199,0.96); }
+
+    .nav-back {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 10px;
+      font-weight: 400;
+      letter-spacing: 0.40em;
+      text-transform: uppercase;
+      color: rgba(243,237,224,0.40);
+      text-decoration: none;
+      transition: color 0.34s ease;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .nav-back:hover { color: rgba(243,237,224,0.72); }
+    .nav-back-arrow { font-size: 14px; }
+
+    /* ── Page layout ────────────────────────────────────────── */
+    .page-wrap {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 160px 56px 120px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 120px;
+      align-items: start;
+    }
+
+    /* ── Order summary — left column ────────────────────────── */
+    .summary {
+      position: sticky;
+      top: 140px;
+    }
+
+    .summary-label {
+      font-size: 9px;
+      letter-spacing: 0.46em;
+      text-transform: uppercase;
+      color: var(--gold);
+      display: block;
+      margin-bottom: 48px;
+      opacity: 0.8;
+    }
+
+    .summary-product {
+      border-top: 1px solid var(--wr2);
+      border-bottom: 1px solid var(--wr2);
+      padding: 36px 0;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 24px;
+      align-items: start;
+    }
+
+    .product-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-weight: 300;
+      font-size: clamp(22px, 2.2vw, 30px);
+      line-height: 1.15;
+      color: var(--ivory);
+      letter-spacing: -0.01em;
+      margin-bottom: 10px;
+    }
+
+    .product-detail {
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      color: rgba(243,237,224,0.38);
+      line-height: 2;
+    }
+
+    .product-lot {
+      font-size: 8.5px;
+      letter-spacing: 0.40em;
+      text-transform: uppercase;
+      color: rgba(138,116,79,0.70);
+      display: block;
+      margin-top: 14px;
+    }
+
+    .product-price {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 300;
+      font-size: 22px;
+      color: rgba(243,237,224,0.72);
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+      text-align: right;
+    }
+
+    .product-price-note {
+      font-size: 9px;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: rgba(243,237,224,0.24);
+      display: block;
+      margin-top: 6px;
+      text-align: right;
+    }
+
+    .summary-totals {
+      padding: 28px 0 0;
+    }
+
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--wr);
+    }
+
+    .total-row:last-child { border-bottom: none; }
+
+    .total-lbl {
+      font-size: 9px;
+      letter-spacing: 0.36em;
+      text-transform: uppercase;
+      color: rgba(243,237,224,0.38);
+    }
+
+    .total-val {
+      font-size: 14px;
+      color: rgba(243,237,224,0.62);
+      letter-spacing: 0.04em;
+    }
+
+    .total-row.grand .total-lbl {
+      font-size: 10px;
+      color: rgba(243,237,224,0.55);
+      letter-spacing: 0.40em;
+    }
+
+    .total-row.grand .total-val {
+      font-size: 20px;
+      color: rgba(243,237,224,0.88);
+    }
+
+    .summary-note {
+      margin-top: 36px;
+      padding-left: 14px;
+      border-left: 1px solid rgba(138,116,79,0.20);
+    }
+
+    .summary-note p {
+      font-size: 12px;
+      font-style: italic;
+      line-height: 2;
+      color: rgba(243,237,224,0.28);
+    }
+
+    /* ── Payment form — right column ────────────────────────── */
+    .checkout {
+      padding-top: 8px;
+    }
+
+    .checkout-label {
+      font-size: 9px;
+      letter-spacing: 0.46em;
+      text-transform: uppercase;
+      color: var(--gold);
+      display: block;
+      margin-bottom: 48px;
+      opacity: 0.8;
+    }
+
+    /* Contact fields */
+    .form-section-title {
+      font-size: 8.5px;
+      letter-spacing: 0.40em;
+      text-transform: uppercase;
+      color: rgba(243,237,224,0.30);
+      display: block;
+      margin-bottom: 0;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--wr);
+    }
+
+    .form-row {
+      border-bottom: 1px solid var(--wr);
+      padding: 22px 0;
+      display: grid;
+      grid-template-columns: 150px 1fr;
+      gap: 20px;
+      align-items: center;
+    }
+
+    .form-lbl {
+      font-size: 8.5px;
+      letter-spacing: 0.40em;
+      text-transform: uppercase;
+      color: rgba(243,237,224,0.48);
+    }
+
+    .form-ctrl {
+      background: transparent;
+      border: none;
+      outline: none;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 15px;
+      font-weight: 300;
+      color: rgba(243,237,224,0.82);
+      width: 100%;
+    }
+    .form-ctrl::placeholder { color: rgba(243,237,224,0.28); }
+    .form-ctrl:focus { color: rgba(243,237,224,0.92); }
+    .form-row:focus-within { border-bottom-color: rgba(236,227,209,0.16); }
+
+    /* Shipping select */
+    .form-ctrl option { background: #0e0d0b; color: var(--ivory); }
+
+    /* Stripe Elements container */
+    .stripe-section {
+      margin-top: 48px;
+    }
+
+    .stripe-section-title {
+      font-size: 8.5px;
+      letter-spacing: 0.40em;
+      text-transform: uppercase;
+      color: rgba(243,237,224,0.30);
+      display: block;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--wr);
+      margin-bottom: 28px;
+    }
+
+    #payment-element {
+      margin-bottom: 0;
+    }
+
+    /* Loading state for Stripe */
+    .stripe-loading {
+      padding: 40px 0;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      color: rgba(243,237,224,0.28);
+      font-size: 11px;
+      letter-spacing: 0.34em;
+      text-transform: uppercase;
+    }
+
+    .stripe-loading-dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--gold);
+      opacity: 0.4;
+      animation: pulse 1.4s ease-in-out infinite;
+    }
+    .stripe-loading-dot:nth-child(2) { animation-delay: 0.2s; }
+    .stripe-loading-dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes pulse {
+      0%, 80%, 100% { opacity: 0.2; transform: scale(0.85); }
+      40% { opacity: 0.7; transform: scale(1); }
+    }
+
+    /* Error message */
+    #payment-message {
+      display: none;
+      margin-top: 20px;
+      padding: 14px 16px;
+      border-left: 1px solid rgba(200,120,120,0.40);
+      font-size: 13px;
+      font-style: italic;
+      color: rgba(200,120,120,0.80);
+      line-height: 1.8;
+    }
+
+    #payment-message.visible { display: block; }
+
+    /* Submit button */
+    .btn-submit {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: none;
+      border: none;
+      border-top: 1px solid rgba(243,237,224,0.15);
+      width: 100%;
+      padding: 30px 0 0;
+      cursor: pointer;
+      margin-top: 36px;
+      transition: opacity 0.3s;
+    }
+    .btn-submit:hover { opacity: 0.65; }
+    .btn-submit:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    .btn-submit-txt {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 10px;
+      font-weight: 400;
+      letter-spacing: 0.44em;
+      text-transform: uppercase;
+      color: var(--ivory);
+    }
+
+    .btn-submit-arrow {
+      font-size: 17px;
+      color: rgba(243,237,224,0.48);
+      transition: transform 0.3s, color 0.3s;
+    }
+    .btn-submit:hover .btn-submit-arrow { transform: translateX(5px); color: var(--gold); }
+
+    /* Spinner inside button when processing */
+    .btn-spinner {
+      display: none;
+      width: 14px;
+      height: 14px;
+      border: 1px solid rgba(243,237,224,0.20);
+      border-top-color: rgba(243,237,224,0.60);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .btn-submit.loading .btn-submit-txt::after { content: '…'; }
+    .btn-submit.loading .btn-submit-arrow { display: none; }
+    .btn-submit.loading .btn-spinner { display: block; }
+
+    /* Security note */
+    .secure-note {
+      margin-top: 22px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .secure-note-txt {
+      font-size: 10px;
+      letter-spacing: 0.22em;
+      color: rgba(243,237,224,0.18);
+      text-transform: uppercase;
+    }
+
+    /* ── Success state ───────────────────────────────────────── */
+    #success-panel {
+      display: none;
+      padding: 80px 0;
+      text-align: left;
+    }
+
+    #success-panel.visible { display: block; }
+
+    .success-mark {
+      font-size: 9px;
+      letter-spacing: 0.46em;
+      text-transform: uppercase;
+      color: var(--gold);
+      display: block;
+      margin-bottom: 32px;
+      opacity: 0.8;
+    }
+
+    .success-heading {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-weight: 300;
+      font-size: clamp(28px, 3vw, 44px);
+      line-height: 1.2;
+      color: var(--ivory);
+      letter-spacing: -0.01em;
+      margin-bottom: 28px;
+    }
+
+    .success-body {
+      font-size: 15px;
+      line-height: 2.1;
+      color: rgba(243,237,224,0.55);
+      max-width: 420px;
+      margin-bottom: 48px;
+    }
+
+    .success-quote {
+      font-style: italic;
+      font-size: 14px;
+      color: rgba(243,237,224,0.28);
+      letter-spacing: 0.02em;
+      padding-left: 16px;
+      border-left: 1px solid rgba(138,116,79,0.20);
+    }
+
+    /* ── Demo notice ─────────────────────────────────────────── */
+    .demo-notice {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000;
+      background: rgba(14,13,11,0.92);
+      border: 1px solid rgba(138,116,79,0.22);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      white-space: nowrap;
+    }
+
+    .demo-notice-txt {
+      font-size: 9px;
+      letter-spacing: 0.30em;
+      text-transform: uppercase;
+      color: rgba(243,237,224,0.36);
+    }
+
+    .demo-notice-badge {
+      font-size: 8px;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: var(--gold);
+      opacity: 0.7;
+      border: 1px solid rgba(138,116,79,0.28);
+      padding: 3px 8px;
+    }
+
+    /* ── Footer ─────────────────────────────────────────────── */
+    footer {
+      background: var(--black);
+      border-top: 1px solid var(--wr);
+      padding: 52px 56px;
+    }
+
+    .foot-inner {
+      max-width: 1440px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .foot-wordmark {
+      font-family: 'Cinzel', serif;
+      font-weight: 400;
+      font-size: 9.5px;
+      letter-spacing: 0.72em;
+      text-transform: uppercase;
+      color: rgba(243,237,224,0.30);
+    }
+
+    .foot-copy {
+      font-size: 9.5px;
+      letter-spacing: 0.20em;
+      color: rgba(243,237,224,0.20);
+    }
+
+    /* ── Responsive ──────────────────────────────────────────── */
+    @media (max-width: 1100px) {
+      .page-wrap {
+        grid-template-columns: 1fr;
+        gap: 72px;
+        padding: 140px 32px 100px;
+      }
+      .summary { position: static; }
+      nav, nav.scrolled { padding-left: 32px; padding-right: 32px; }
+      footer { padding-left: 32px; padding-right: 32px; }
+    }
+
+    @media (max-width: 720px) {
+      .page-wrap { padding: 110px 18px 80px; gap: 48px; }
+      nav, nav.scrolled { padding: 18px 18px !important; }
+      .nav-emblem { width: 40px; }
+      .form-row { grid-template-columns: 1fr; gap: 8px; padding: 16px 0; }
+      .form-lbl { font-size: 7px; }
+      footer { padding: 36px 18px; }
+      .foot-inner { flex-direction: column; gap: 16px; align-items: flex-start; }
+      .demo-notice { display: none; }
+    }
+
+    /* ── Custom cursor ───────────────────────────────────────── */
+    .rr-pointer-light {
+      position: fixed;
+      left: 0; top: 0;
+      width: 92px; height: 92px;
+      border-radius: 50%;
+      pointer-events: none;
+      transform: translate(-50%, -50%) scale(1);
+      z-index: 99999;
+      opacity: 0;
+      will-change: left, top, opacity, transform, filter;
+      transition: opacity 220ms ease, transform 260ms cubic-bezier(.22,.61,.36,1), filter 320ms cubic-bezier(.22,.61,.36,1);
+      filter: blur(12px);
+      mix-blend-mode: screen;
+    }
+    .rr-pl-base, .rr-pl-hover {
+      position: absolute; inset: 0; border-radius: 50%;
+      transition: opacity 360ms cubic-bezier(.22,.61,.36,1), transform 360ms cubic-bezier(.22,.61,.36,1);
+    }
+    .rr-pl-base::after, .rr-pl-hover::after {
+      content: ''; position: absolute; border-radius: 50%;
+      transition: opacity 360ms cubic-bezier(.22,.61,.36,1), transform 360ms cubic-bezier(.22,.61,.36,1);
+    }
+    .rr-pl-base {
+      opacity: 1; transform: scale(1);
+      background: radial-gradient(circle, rgba(248,240,226,0.30) 0%, rgba(243,232,213,0.17) 26%, rgba(235,222,198,0.09) 48%, rgba(231,216,190,0.03) 66%, rgba(231,216,190,0) 100%);
+    }
+    .rr-pl-base::after {
+      inset: 32%;
+      background: radial-gradient(circle, rgba(255,249,241,0.72) 0%, rgba(252,244,232,0.34) 34%, rgba(251,243,231,0.10) 58%, rgba(251,243,231,0) 100%);
+      opacity: 0.78; transform: scale(0.94);
+    }
+    .rr-pl-hover { opacity: 0; transform: scale(0.96);
+      background: radial-gradient(circle, rgba(250,239,220,0.50) 0%, rgba(246,230,203,0.30) 23%, rgba(239,219,188,0.15) 45%, rgba(233,210,176,0.06) 63%, rgba(233,210,176,0) 100%);
+    }
+    .rr-pl-hover::after {
+      inset: 31%;
+      background: radial-gradient(circle, rgba(255,246,232,0.98) 0%, rgba(252,236,210,0.56) 33%, rgba(247,226,193,0.18) 58%, rgba(247,226,193,0) 100%);
+      opacity: 0.98; transform: scale(1.02);
+    }
+    .rr-pointer-light.is-visible { opacity: 0.84; }
+    .rr-pointer-light.is-hover { transform: translate(-50%, -50%) scale(1.18); filter: blur(9px); }
+    .rr-pointer-light.is-hover .rr-pl-base { opacity: 0.18; transform: scale(0.97); }
+    .rr-pointer-light.is-hover .rr-pl-base::after { opacity: 0.16; transform: scale(0.98); }
+    .rr-pointer-light.is-hover .rr-pl-hover { opacity: 1; transform: scale(1); }
+    .rr-pointer-light.is-hover .rr-pl-hover::after { opacity: 1; transform: scale(1.12); }
+    @media (hover: none), (pointer: coarse) { .rr-pointer-light { display: none !important; } }
+    html.has-rr-pointer-light, html.has-rr-pointer-light body, html.has-rr-pointer-light * { cursor: none !important; }
+  </style>
+</head>
+<body>
+
+  <!-- ── Navigation ──────────────────────────────────────────── -->
+  <nav id="nav">
+    <a class="nav-back" href="index.html">
+      <span class="nav-back-arrow">←</span>
+      <span>Tornare</span>
+    </a>
+    <a class="nav-emblem" href="index.html" aria-label="Moscatelli — torna all'inizio"></a>
+  </nav>
+
+  <!-- ── Main ────────────────────────────────────────────────── -->
+  <main>
+    <div class="page-wrap">
+
+      <!-- LEFT: Order summary -->
+      <div class="summary">
+        <span class="summary-label reveal">Riepilogo Ordine</span>
+
+        <div class="summary-product reveal">
+          <div>
+            <div class="product-name">Sciarpa Baby Alpaca</div>
+            <div class="product-detail">
+              Nm 2/40 · Orlo a giorno eseguito a mano<br />
+              Bianco Avorio
+            </div>
+            <span class="product-lot">Lotto I · MMXXVI · Edizione Limitata</span>
+          </div>
+          <div>
+            <div class="product-price">€ 890</div>
+            <span class="product-price-note">IVA inclusa</span>
+          </div>
+        </div>
+
+        <div class="summary-totals reveal">
+          <div class="total-row">
+            <span class="total-lbl">Subtotale</span>
+            <span class="total-val">€ 890,00</span>
+          </div>
+          <div class="total-row">
+            <span class="total-lbl">Spedizione</span>
+            <span class="total-val" id="shipping-val">Da calcolare</span>
+          </div>
+          <div class="total-row grand">
+            <span class="total-lbl">Totale</span>
+            <span class="total-val" id="grand-total">€ 890,00</span>
+          </div>
+        </div>
+
+        <div class="summary-note reveal">
+          <p>
+            Ogni pezzo lascia la Manufattura con l'approvazione diretta del fondatore.
+            La spedizione avviene entro 5–7 giorni lavorativi dalla conferma dell'ordine.
+          </p>
+        </div>
+      </div>
+
+      <!-- RIGHT: Payment form -->
+      <div class="checkout reveal">
+        <span class="checkout-label">Pagamento Sicuro</span>
+
+        <!-- Contact + shipping fields -->
+        <span class="form-section-title">Dati di Contatto</span>
+
+        <form id="checkout-form">
+          <div class="form-row">
+            <label class="form-lbl">Nome e Cognome</label>
+            <input class="form-ctrl" id="field-name" type="text" placeholder="Come si chiama" autocomplete="name" required />
+          </div>
+          <div class="form-row">
+            <label class="form-lbl">Posta Elettronica</label>
+            <input class="form-ctrl" id="field-email" type="email" placeholder="Per la conferma d'ordine" autocomplete="email" required />
+          </div>
+          <div class="form-row">
+            <label class="form-lbl">Telefono</label>
+            <input class="form-ctrl" id="field-phone" type="tel" placeholder="Opzionale" autocomplete="tel" />
+          </div>
+
+          <div class="form-row" style="margin-top: 8px;">
+            <label class="form-lbl">Indirizzo</label>
+            <input class="form-ctrl" id="field-address" type="text" placeholder="Via, numero civico" autocomplete="street-address" required />
+          </div>
+          <div class="form-row">
+            <label class="form-lbl">Città</label>
+            <input class="form-ctrl" id="field-city" type="text" placeholder="Città" autocomplete="address-level2" required />
+          </div>
+          <div class="form-row">
+            <label class="form-lbl">CAP</label>
+            <input class="form-ctrl" id="field-postcode" type="text" placeholder="Codice postale" autocomplete="postal-code" required />
+          </div>
+          <div class="form-row">
+            <label class="form-lbl">Paese</label>
+            <select class="form-ctrl" id="field-country" autocomplete="country" required>
+              <option value="" disabled selected>Selezionare</option>
+              <option value="IT">Italia</option>
+              <option value="FR">Francia</option>
+              <option value="DE">Germania</option>
+              <option value="CH">Svizzera</option>
+              <option value="GB">Regno Unito</option>
+              <option value="US">Stati Uniti</option>
+              <option value="BR">Brasile</option>
+              <option value="JP">Giappone</option>
+              <option value="AU">Australia</option>
+            </select>
+          </div>
+
+          <!-- Stripe Elements mount point -->
+          <div class="stripe-section">
+            <span class="stripe-section-title">Dati di Pagamento</span>
+
+            <!-- Loading indicator before Stripe mounts -->
+            <div class="stripe-loading" id="stripe-loader">
+              <div class="stripe-loading-dot"></div>
+              <div class="stripe-loading-dot"></div>
+              <div class="stripe-loading-dot"></div>
+              <span>Selezionare il paese</span>
+            </div>
+
+            <!-- Stripe Element mounts here -->
+            <div id="payment-element"></div>
+          </div>
+
+          <!-- Error -->
+          <div id="payment-message"></div>
+
+          <!-- Submit -->
+          <button class="btn-submit" id="submit-btn" type="submit" disabled>
+            <span class="btn-submit-txt">Confermare l'Acquisto</span>
+            <div class="btn-spinner"></div>
+            <span class="btn-submit-arrow">→</span>
+          </button>
+
+          <div class="secure-note">
+            <span class="secure-note-txt">Pagamento sicuro — Stripe</span>
+          </div>
+        </form>
+
+        <!-- Success panel -->
+        <div id="success-panel">
+          <span class="success-mark">Ordine Confermato</span>
+          <h1 class="success-heading">Il suo ordine è stato ricevuto.</h1>
+          <p class="success-body">
+            Una conferma è stata inviata all'indirizzo indicato.
+            Il pezzo sarà esaminato e spedito entro 5–7 giorni lavorativi,
+            con la cura riservata a ogni ordine che lascia la Manufattura.
+          </p>
+          <p class="success-quote">«Quod durat, sufficit.»</p>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ── Footer ──────────────────────────────────────────────── -->
+  <footer>
+    <div class="foot-inner">
+      <span class="foot-wordmark">Moscatelli</span>
+      <span class="foot-copy">© MMXXVI Moscatelli — Tutti i diritti riservati</span>
+    </div>
+  </footer>
+
+  <!-- ── Demo notice ──────────────────────────────────────────── -->
+  <div class="demo-notice">
+    <span class="demo-notice-badge">Test Mode</span>
+    <span class="demo-notice-txt">Nessun pagamento reale — usa la carta 4242 4242 4242 4242</span>
+  </div>
+
+  <!-- ── Custom cursor ────────────────────────────────────────── -->
+  <div class="rr-pointer-light" aria-hidden="true">
+    <span class="rr-pl-base"></span>
+    <span class="rr-pl-hover"></span>
+  </div>
+
+  <script>
+    // ── Nav scroll ────────────────────────────────────────────────
+    const nav = document.getElementById('nav');
+    window.addEventListener('scroll', () => {
+      nav.classList.toggle('scrolled', window.scrollY > 64);
+    }, { passive: true });
+
+    // ── Scroll reveal ─────────────────────────────────────────────
+    const reveals = document.querySelectorAll('.reveal');
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        const siblings = [...entry.target.parentElement.querySelectorAll('.reveal:not(.in)')];
+        const idx = siblings.indexOf(entry.target);
+        setTimeout(() => entry.target.classList.add('in'), Math.max(0, idx) * 115);
+        io.unobserve(entry.target);
+      });
+    }, { threshold: 0.08, rootMargin: '0px 0px -20px 0px' });
+    reveals.forEach(el => io.observe(el));
+    setTimeout(() => {
+      document.querySelectorAll('.reveal:not(.in)').forEach(el => el.classList.add('in'));
+    }, 1500);
+
+    // ── Shipping cost update ──────────────────────────────────────
+    const shippingRates = {
+      IT: { label: '€ 12,00', amount: 12 },
+      CH: { label: '€ 18,00', amount: 18 },
+      FR: { label: '€ 18,00', amount: 18 },
+      DE: { label: '€ 18,00', amount: 18 },
+      GB: { label: '€ 22,00', amount: 22 },
+      US: { label: '€ 28,00', amount: 28 },
+      BR: { label: '€ 32,00', amount: 32 },
+      JP: { label: '€ 28,00', amount: 28 },
+      AU: { label: '€ 28,00', amount: 28 },
+    };
+
+    const BASE_PRICE = 890;
+    document.getElementById('field-country').addEventListener('change', function () {
+      const rate = shippingRates[this.value];
+      if (rate) {
+        document.getElementById('shipping-val').textContent = rate.label;
+        document.getElementById('grand-total').textContent = `€ ${(BASE_PRICE + rate.amount).toFixed(2).replace('.', ',')}`;
+        initialiseStripe(this.value, BASE_PRICE + rate.amount);
+      }
+    });
+
+    // ── Stripe initialisation ──────────────────────────────────────
+    const PUBLISHABLE_KEY = 'pk_test_51TLoy8KuScTTX5DKFwlUkswO0fRzANg474OkbbZQfziwoVOxIfY5Z8VamsCBPeT6z1Q8LhPYZTQWbECvAGlzKMXw00tEnhAh80';
+
+    const stripe = Stripe(PUBLISHABLE_KEY);
+
+    let elements;
+    let paymentElement;
+
+    // Stripe Elements appearance — tuned to Moscatelli's design system
+    const appearance = {
+      theme: 'night',
+      variables: {
+        colorBackground:      'transparent',
+        colorText:            'rgba(243,237,224,0.82)',
+        colorTextSecondary:   'rgba(243,237,224,0.48)',
+        colorTextPlaceholder: 'rgba(243,237,224,0.28)',
+        colorDanger:          'rgba(200,120,120,0.80)',
+        fontFamily:           '"Cormorant Garamond", Georgia, serif',
+        fontSizeBase:         '15px',
+        fontWeightNormal:     '300',
+        fontWeightBold:       '400',
+        borderRadius:         '0px',
+        colorPrimary:         'rgba(138,116,79,0.95)',
+        spacingUnit:          '4px',
+        spacingGridRow:       '20px',
+        colorIconTab:         'rgba(243,237,224,0.40)',
+        colorIconTabSelected: 'rgba(243,237,224,0.80)',
+        colorIconTabHover:    'rgba(243,237,224,0.60)',
+      },
+      rules: {
+        '.Input': {
+          backgroundColor: 'transparent',
+          border:           'none',
+          borderBottom:     '1px solid rgba(236,227,209,0.06)',
+          borderRadius:     '0',
+          color:            'rgba(243,237,224,0.82)',
+          fontFamily:       '"Cormorant Garamond", Georgia, serif',
+          fontSize:         '15px',
+          fontWeight:       '300',
+          padding:          '12px 0',
+          boxShadow:        'none',
+          transition:       'border-color 0.3s ease',
+        },
+        '.Input:focus': {
+          borderColor: 'rgba(236,227,209,0.16)',
+          boxShadow:   'none',
+          outline:     'none',
+        },
+        '.Input--invalid': {
+          borderColor: 'rgba(200,120,120,0.40)',
+          color:       'rgba(200,120,120,0.80)',
+        },
+        '.Label': {
+          fontSize:      '8.5px',
+          letterSpacing: '0.40em',
+          textTransform: 'uppercase',
+          color:         'rgba(243,237,224,0.48)',
+          fontFamily:    '"Cormorant Garamond", Georgia, serif',
+          fontWeight:    '400',
+          marginBottom:  '10px',
+        },
+        '.Tab': {
+          backgroundColor: 'transparent',
+          border:          '1px solid rgba(236,227,209,0.06)',
+          borderRadius:    '0',
+          color:           'rgba(243,237,224,0.40)',
+          fontFamily:      '"Cormorant Garamond", Georgia, serif',
+          fontSize:        '13px',
+          padding:         '10px 14px',
+          boxShadow:       'none',
+        },
+        '.Tab:hover': {
+          color:       'rgba(243,237,224,0.70)',
+          borderColor: 'rgba(236,227,209,0.14)',
+          boxShadow:   'none',
+        },
+        '.Tab--selected': {
+          backgroundColor: 'transparent',
+          border:          '1px solid rgba(138,116,79,0.35)',
+          color:           'rgba(243,237,224,0.82)',
+          boxShadow:       'none',
+        },
+        '.Tab--selected:focus': {
+          boxShadow: 'none',
+        },
+        '.TabIcon': {
+          fill: 'rgba(243,237,224,0.40)',
+        },
+        '.TabIcon--selected': {
+          fill: 'rgba(243,237,224,0.80)',
+        },
+        '.TabLabel': {
+          fontSize:      '11px',
+          letterSpacing: '0.06em',
+        },
+        '.Error': {
+          fontSize:      '12px',
+          fontStyle:     'italic',
+          color:         'rgba(200,120,120,0.80)',
+          marginTop:     '6px',
+          letterSpacing: '0.02em',
+        },
+        '.CheckboxInput': {
+          border:          '1px solid rgba(236,227,209,0.12)',
+          backgroundColor: 'transparent',
+          borderRadius:    '0',
+        },
+        '.CheckboxInput--checked': {
+          backgroundColor: 'rgba(138,116,79,0.20)',
+          border:          '1px solid rgba(138,116,79,0.40)',
+        },
+      }
+    };
+
+    async function initialiseStripe(country, totalAmount) {
+      const loader = document.getElementById('stripe-loader');
+      loader.style.display = 'flex';
+      loader.querySelector('span').textContent = 'Caricamento';
+      document.getElementById('submit-btn').disabled = true;
+
+      if (paymentElement) {
+        paymentElement.destroy();
+        paymentElement = null;
+      }
+
+      try {
+        // Call the Netlify Function to create a PaymentIntent
+        const response = await fetch('/.netlify/functions/create-payment-intent', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ country }),
+        });
+
+        if (!response.ok) throw new Error('Function not available');
+
+        const { clientSecret } = await response.json();
+
+        elements = stripe.elements({ appearance, clientSecret });
+        paymentElement = elements.create('payment', {
+          layout: { type: 'tabs', defaultCollapsed: false },
+          wallets: { applePay: 'auto', googlePay: 'auto' },
+        });
+
+        document.getElementById('stripe-loader').style.display = 'none';
+        paymentElement.mount('#payment-element');
+
+        paymentElement.on('ready', () => {
+          document.getElementById('submit-btn').disabled = false;
+        });
+
+      } catch (err) {
+        // Netlify function not set up yet — mount in demo/setup-intent mode
+        console.warn('PaymentIntent not available, mounting in setup mode:', err.message);
+        mountDemoElements(totalAmount);
+      }
+    }
+
+    function mountDemoElements(totalAmount) {
+      // Mount Elements without a PaymentIntent for visual testing
+      elements = stripe.elements({
+        appearance,
+        mode: 'payment',
+        amount: Math.round(totalAmount * 100),
+        currency: 'eur',
+      });
+
+      paymentElement = elements.create('payment', {
+        layout: { type: 'tabs', defaultCollapsed: false },
+        wallets: { applePay: 'auto', googlePay: 'auto' },
+      });
+
+      document.getElementById('stripe-loader').style.display = 'none';
+      paymentElement.mount('#payment-element');
+
+      paymentElement.on('ready', () => {
+        document.getElementById('submit-btn').disabled = false;
+      });
+    }
+
+    // ── Form submission ───────────────────────────────────────────
+    document.getElementById('checkout-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const submitBtn = document.getElementById('submit-btn');
+      const messageEl = document.getElementById('payment-message');
+
+      submitBtn.disabled = true;
+      submitBtn.classList.add('loading');
+      messageEl.classList.remove('visible');
+
+      try {
+        const { error } = await stripe.confirmPayment({
+          elements,
+          confirmParams: {
+            return_url:         `${window.location.origin}/pagamento.html?success=true`,
+            payment_method_data: {
+              billing_details: {
+                name:    document.getElementById('field-name').value,
+                email:   document.getElementById('field-email').value,
+                phone:   document.getElementById('field-phone').value,
+                address: {
+                  line1:       document.getElementById('field-address').value,
+                  city:        document.getElementById('field-city').value,
+                  postal_code: document.getElementById('field-postcode').value,
+                  country:     document.getElementById('field-country').value,
+                },
+              },
+            },
+          },
+          redirect: 'if_required',
+        });
+
+        if (error) {
+          if (error.type === 'card_error' || error.type === 'validation_error') {
+            messageEl.textContent = error.message;
+          } else {
+            messageEl.textContent = 'Si è verificato un errore imprevisto. Si prega di riprovare.';
+          }
+          messageEl.classList.add('visible');
+          submitBtn.disabled = false;
+          submitBtn.classList.remove('loading');
+        } else {
+          // Payment succeeded (no redirect required — 3DS already handled)
+          showSuccess();
+        }
+      } catch (err) {
+        messageEl.textContent = 'Connessione interrotta. Riprovare.';
+        messageEl.classList.add('visible');
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('loading');
+      }
+    });
+
+    function showSuccess() {
+      document.getElementById('checkout-form').style.display = 'none';
+      document.getElementById('success-panel').classList.add('visible');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Handle return from 3DS redirect
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('success') === 'true') {
+      document.addEventListener('DOMContentLoaded', showSuccess);
+    }
+
+    // ── Custom cursor ──────────────────────────────────────────────
+    (() => {
+      const pointer = document.querySelector('.rr-pointer-light');
+      if (!pointer) return;
+      const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+      if (!finePointer) return;
+      document.documentElement.classList.add('has-rr-pointer-light');
+      const hoverSelectors = 'a,button,[role="button"],input,select,textarea,[onclick]';
+      let mouseX = window.innerWidth / 2, mouseY = window.innerHeight / 2;
+      let currentX = mouseX, currentY = mouseY;
+      let rafId = null;
+      const render = () => {
+        currentX += (mouseX - currentX) * 0.30;
+        currentY += (mouseY - currentY) * 0.30;
+        pointer.style.left = `${currentX}px`;
+        pointer.style.top = `${currentY}px`;
+        rafId = requestAnimationFrame(render);
+      };
+      const updateHover = t => pointer.classList.toggle('is-hover', !!(t && t.closest && t.closest(hoverSelectors)));
+      window.addEventListener('mousemove', e => {
+        mouseX = e.clientX; mouseY = e.clientY;
+        pointer.classList.add('is-visible');
+        updateHover(e.target);
+        if (!rafId) render();
+      }, { passive: true });
+      document.addEventListener('mouseover', e => updateHover(e.target));
+      document.addEventListener('mouseleave', () => pointer.classList.remove('is-visible'));
+    })();
+  </script>
+
+</body>
+</html>
