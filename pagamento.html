@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Moscatelli — Acquisto</title>
+  <script src="js/pointer-light.js" defer></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&display=swap" rel="stylesheet" />
@@ -104,22 +105,41 @@
       aspect-ratio: 1 / 1;
       display: block;
       text-decoration: none;
-      background-color: rgba(227,218,199,0.88);
-      -webkit-mask-image: url('images/monogram-mask.png');
-      mask-image: url('images/monogram-mask.png');
-      -webkit-mask-repeat: no-repeat;
-      mask-repeat: no-repeat;
-      -webkit-mask-position: center;
-      mask-position: center;
-      -webkit-mask-size: contain;
-      mask-size: contain;
       pointer-events: auto;
       cursor: pointer;
       opacity: 0.45;
-      transition: opacity 1.35s cubic-bezier(0.16,1,0.3,1);
+      transition: opacity 850ms cubic-bezier(0.16,1,0.3,1);
     }
-    nav.scrolled .nav-emblem { opacity: 1; filter: brightness(1.08); }
-    .nav-emblem:hover { background-color: rgba(227,218,199,0.96); }
+    .nav-emblem::before,
+    .nav-emblem::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background-color: rgba(227,218,199,0.88);
+      -webkit-mask: url('images/monogram-mask.png') center / contain no-repeat;
+      mask: url('images/monogram-mask.png') center / contain no-repeat;
+    }
+    .nav-emblem::before {
+      transition: background-color 850ms cubic-bezier(0.16,1,0.3,1),
+                  filter 850ms cubic-bezier(0.16,1,0.3,1);
+    }
+    .nav-emblem::after {
+      background-color: #fff4df;
+      filter: blur(3px);
+      opacity: 0;
+      transition: opacity 1s cubic-bezier(0.16,1,0.3,1);
+    }
+    nav.scrolled .nav-emblem { opacity: 1; }
+    nav.scrolled .nav-emblem::before { filter: brightness(1.08); }
+    .nav-emblem:focus-visible { opacity: 1; outline: none; }
+    .nav-emblem:focus-visible::before { background-color: #fff4df; filter: brightness(1.08); }
+    .nav-emblem:focus-visible::after { opacity: 0.24; }
+    @media (hover: hover) and (pointer: fine) {
+      .nav-emblem:hover { opacity: 1; }
+      .nav-emblem:hover::before { background-color: #fff4df; filter: brightness(1.08); }
+      .nav-emblem:hover::after { opacity: 0.24; }
+    }
 
     .nav-back {
       font-family: 'Cormorant Garamond', serif;
@@ -775,18 +795,27 @@
     /* ── Custom cursor ───────────────────────────────────────── */
     .rr-pointer-light {
       position: fixed;
-      left: 0; top: 0;
-      width: 92px; height: 92px;
-      border-radius: 50%;
+      left: 0;
+      top: 0;
+      width: 92px;
+      height: 92px;
       pointer-events: none;
-      transform: translate(-50%, -50%) scale(1);
       z-index: 99999;
       opacity: 0;
-      will-change: left, top, opacity, transform, filter;
-      transition: opacity 220ms ease, transform 260ms cubic-bezier(.22,.61,.36,1), filter 320ms cubic-bezier(.22,.61,.36,1);
-      filter: blur(12px);
       mix-blend-mode: screen;
+      transition: opacity 220ms ease;
     }
+    .rr-pointer-glow {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      transform: scale(1);
+      transform-origin: center;
+      filter: blur(12px);
+      transition: transform 260ms cubic-bezier(.22,.61,.36,1),
+                  filter 320ms cubic-bezier(.22,.61,.36,1);
+    }
+
     .rr-pl-base, .rr-pl-hover {
       position: absolute; inset: 0; border-radius: 50%;
       transition: opacity 360ms cubic-bezier(.22,.61,.36,1), transform 360ms cubic-bezier(.22,.61,.36,1);
@@ -813,7 +842,9 @@
       opacity: 0.98; transform: scale(1.02);
     }
     .rr-pointer-light.is-visible { opacity: 0.84; }
-    .rr-pointer-light.is-hover { transform: translate(-50%, -50%) scale(1.18); filter: blur(9px); }
+    .rr-pointer-light.is-hover .rr-pointer-glow { transform: scale(1.18); filter: blur(9px); }
+    .rr-pointer-light.is-pressed .rr-pointer-glow { transform: scale(0.96); }
+    .rr-pointer-light.is-hover.is-pressed .rr-pointer-glow { transform: scale(1.12); }
     .rr-pointer-light.is-hover .rr-pl-base { opacity: 0.18; transform: scale(0.97); }
     .rr-pointer-light.is-hover .rr-pl-base::after { opacity: 0.16; transform: scale(0.98); }
     .rr-pointer-light.is-hover .rr-pl-hover { opacity: 1; transform: scale(1); }
@@ -1022,16 +1053,25 @@
 
   <!-- ── Custom cursor ────────────────────────────────────────── -->
   <div class="rr-pointer-light" aria-hidden="true">
-    <span class="rr-pl-base"></span>
-    <span class="rr-pl-hover"></span>
+    <span class="rr-pointer-glow">
+      <span class="rr-pl-base"></span>
+      <span class="rr-pl-hover"></span>
+    </span>
   </div>
 
   <script>
     // ── Nav scroll ────────────────────────────────────────────────
     const nav = document.getElementById('nav');
-    window.addEventListener('scroll', () => {
-      nav.classList.toggle('scrolled', window.scrollY > 64);
-    }, { passive: true });
+    let navScrolled;
+    function updateNav() {
+      const scrolled = window.scrollY > 64;
+      if (scrolled === navScrolled) return;
+      navScrolled = scrolled;
+      nav.classList.toggle('scrolled', scrolled);
+    }
+    window.addEventListener('scroll', updateNav, { passive: true });
+    window.addEventListener('pageshow', updateNav);
+    updateNav();
 
     // ── Scroll reveal ─────────────────────────────────────────────
     const reveals = document.querySelectorAll('.reveal');
@@ -1365,35 +1405,6 @@
       document.addEventListener('DOMContentLoaded', showSuccess);
     }
 
-    // ── Custom cursor ──────────────────────────────────────────────
-    (() => {
-      const pointer = document.querySelector('.rr-pointer-light');
-      if (!pointer) return;
-      const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
-      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      if (!finePointer || reducedMotion) return;
-      document.documentElement.classList.add('has-rr-pointer-light');
-      const hoverSelectors = 'a,button,[role="button"],input,select,textarea,[onclick]';
-      let mouseX = window.innerWidth / 2, mouseY = window.innerHeight / 2;
-      let currentX = mouseX, currentY = mouseY;
-      let rafId = null;
-      const render = () => {
-        currentX += (mouseX - currentX) * 0.30;
-        currentY += (mouseY - currentY) * 0.30;
-        pointer.style.left = `${currentX}px`;
-        pointer.style.top = `${currentY}px`;
-        rafId = requestAnimationFrame(render);
-      };
-      const updateHover = t => pointer.classList.toggle('is-hover', !!(t && t.closest && t.closest(hoverSelectors)));
-      window.addEventListener('mousemove', e => {
-        mouseX = e.clientX; mouseY = e.clientY;
-        pointer.classList.add('is-visible');
-        updateHover(e.target);
-        if (!rafId) render();
-      }, { passive: true });
-      document.addEventListener('mouseover', e => updateHover(e.target));
-      document.addEventListener('mouseleave', () => pointer.classList.remove('is-visible'));
-    })();
   </script>
 
 </body>

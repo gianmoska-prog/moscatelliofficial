@@ -4,6 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Moscatelli — Roma</title>
+  <script>document.documentElement.classList.add('js');</script>
+  <link rel="preload" as="image" href="images/hero-home.webp" fetchpriority="high" />
+  <script src="js/pointer-light.js" defer></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&display=swap" rel="stylesheet" />
@@ -181,9 +184,6 @@
         opacity 420ms cubic-bezier(0.16,1,0.3,1),
         filter 420ms cubic-bezier(0.16,1,0.3,1),
         color 420ms cubic-bezier(0.16,1,0.3,1);
-      will-change: opacity, filter, color;
-      backface-visibility: hidden;
-      transform: translateZ(0);
     }
 
     body.lang-switching > section,
@@ -231,6 +231,7 @@
 
     /* Full-screen overlay menu */
     .menu-overlay {
+      visibility: hidden;
       position: fixed;
       inset: 0;
       z-index: 500;
@@ -239,7 +240,7 @@
       padding: 130px 56px 80px;
       pointer-events: none;
       opacity: 0;
-      transition: opacity 0.48s ease;
+      transition: opacity 0.48s ease, visibility 0s linear 0.48s;
     }
     @media (min-width: 721px) {
       .menu-overlay {
@@ -249,6 +250,8 @@
       }
     }
     .menu-overlay.open {
+      visibility: visible;
+      transition-delay: 0s;
       opacity: 1;
       pointer-events: all;
     }
@@ -313,31 +316,40 @@
       aspect-ratio: 1 / 1;
       display: block;
       text-decoration: none;
-      background-color: rgba(227,218,199,0.88);
-      -webkit-mask-image: url('images/monogram-mask.png');
-      mask-image: url('images/monogram-mask.png');
-      -webkit-mask-repeat: no-repeat;
-      mask-repeat: no-repeat;
-      -webkit-mask-position: center;
-      mask-position: center;
-      -webkit-mask-size: contain;
-      mask-size: contain;
       pointer-events: auto;
       cursor: pointer;
       opacity: 0.45;
-      transition: opacity 1.35s cubic-bezier(0.16, 1, 0.3, 1), transform 1.35s cubic-bezier(0.16, 1, 0.3, 1), filter 1.35s cubic-bezier(0.16, 1, 0.3, 1);
-      will-change: opacity, transform, filter;
+      transition: opacity 850ms cubic-bezier(0.16,1,0.3,1);
     }
-    nav.scrolled .nav-emblem {
-      opacity: 1;
-      filter: brightness(1.08);
+    .nav-emblem::before,
+    .nav-emblem::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background-color: rgba(227,218,199,0.88);
+      -webkit-mask: url('images/monogram-mask.png') center / contain no-repeat;
+      mask: url('images/monogram-mask.png') center / contain no-repeat;
     }
-    .nav-emblem:hover {
-      background-color: rgba(227,218,199,0.96);
+    .nav-emblem::before {
+      transition: background-color 850ms cubic-bezier(0.16,1,0.3,1),
+                  filter 850ms cubic-bezier(0.16,1,0.3,1);
     }
-    .nav-emblem:focus-visible {
-      background-color: rgba(227,218,199,1);
-      outline: none;
+    .nav-emblem::after {
+      background-color: #fff4df;
+      filter: blur(3px);
+      opacity: 0;
+      transition: opacity 1s cubic-bezier(0.16,1,0.3,1);
+    }
+    nav.scrolled .nav-emblem { opacity: 1; }
+    nav.scrolled .nav-emblem::before { filter: brightness(1.08); }
+    .nav-emblem:focus-visible { opacity: 1; outline: none; }
+    .nav-emblem:focus-visible::before { background-color: #fff4df; filter: brightness(1.08); }
+    .nav-emblem:focus-visible::after { opacity: 0.24; }
+    @media (hover: hover) and (pointer: fine) {
+      .nav-emblem:hover { opacity: 1; }
+      .nav-emblem:hover::before { background-color: #fff4df; filter: brightness(1.08); }
+      .nav-emblem:hover::after { opacity: 0.24; }
     }
 
     /* ── HERO ──────────────────────────────────────────────── */
@@ -906,7 +918,7 @@
       width: 38%;
       height: 130%;
       background-image:
-        url('images/feature-packaging.webp'),
+        var(--feature-photo, none),
         linear-gradient(168deg, transparent 0%, rgba(155,134,96,0.04) 42%, transparent 100%);
       background-repeat: no-repeat, no-repeat;
       background-size: cover, cover;
@@ -915,6 +927,7 @@
       transform: none;
       pointer-events: none;
     }
+    html:not(.js) .feature { --feature-photo: url('images/feature-packaging.webp'); }
     .feature-content {
       position: relative;
       z-index: 2;
@@ -2018,7 +2031,7 @@
   </nav>
 
   <!-- Full-screen menu -->
-  <div class="menu-overlay" id="menu-overlay">
+  <div class="menu-overlay" id="menu-overlay" inert>
     <div class="menu-inner">
       <div class="menu-col">
         <span class="menu-col-label" data-i18n-it="Maison" data-i18n-en="Maison">Maison</span>
@@ -2073,7 +2086,7 @@
   <!-- ── Manifesto ─────────────────────────────────────────── -->
   <section class="manifesto" id="manifesto">
     <div class="mf-img">
-      <img class="mf-img-photo" src="images/manifesto-terra-bruna.webp" alt="Sciarpa baby alpaca Moscatelli su travertino" decoding="async" />
+      <img class="mf-img-photo" src="images/manifesto-terra-bruna.webp" alt="Sciarpa baby alpaca Moscatelli su travertino" width="2048" height="3072" loading="lazy" decoding="async" />
       <span class="mf-img-caption">Manufattura Moscatelli · Roma</span>
     </div>
     <div class="mf-text">
@@ -2112,7 +2125,7 @@
       <div class="col-grid">
         <div class="c-item reveal">
           <div class="c-visual">
-            <img class="c-photo" src="images/collection-bianco-avorio.webp" alt="Sciarpa Moscatelli Bianco Avorio" loading="lazy" decoding="async" />
+            <img class="c-photo" src="images/collection-bianco-avorio.webp" alt="Sciarpa Moscatelli Bianco Avorio" width="2048" height="2048" loading="lazy" decoding="async" />
             <div class="c-veil"></div>
           </div>
           <div class="c-meta">
@@ -2124,7 +2137,7 @@
         </div>
         <div class="c-item reveal">
           <div class="c-visual">
-            <img class="c-photo" src="images/collection-terra-bruna.webp" alt="Sciarpa Moscatelli Terra Bruna" loading="lazy" decoding="async" />
+            <img class="c-photo" src="images/collection-terra-bruna.webp" alt="Sciarpa Moscatelli Terra Bruna" width="2048" height="2048" loading="lazy" decoding="async" />
             <div class="c-veil"></div>
           </div>
           <div class="c-meta">
@@ -2324,9 +2337,16 @@
   <script>
     // Nav scroll state
     const nav = document.getElementById('nav');
-    window.addEventListener('scroll', () => {
-      nav.classList.toggle('scrolled', window.scrollY > 64);
-    }, { passive: true });
+    let navScrolled;
+    function updateNav() {
+      const scrolled = window.scrollY > 64;
+      if (scrolled === navScrolled) return;
+      navScrolled = scrolled;
+      nav.classList.toggle('scrolled', scrolled);
+    }
+    window.addEventListener('scroll', updateNav, { passive: true });
+    window.addEventListener('pageshow', updateNav);
+    updateNav();
 
     // Hamburger / MENU toggle
     const hamburger = document.getElementById('hamburger');
@@ -2360,6 +2380,7 @@
       const open = !overlay.classList.contains('open');
       hamburger.classList.toggle('open', open);
       overlay.classList.toggle('open', open);
+      overlay.inert = !open;
       document.body.style.overflow = open ? 'hidden' : '';
       syncMenuUi(open);
     }
@@ -2371,13 +2392,40 @@
       a.addEventListener('click', () => {
         hamburger.classList.remove('open');
         overlay.classList.remove('open');
+        overlay.inert = true;
         document.body.style.overflow = '';
         syncMenuUi(false);
       });
     });
 
+    document.addEventListener('keydown', event => {
+      if (!overlay.classList.contains('open')) return;
+      const trigger = getComputedStyle(hamburger).display === 'none' ? menuBtn : hamburger;
+      if (event.key === 'Escape') {
+        toggleMenu();
+        trigger.focus();
+      } else if (event.key === 'Tab') {
+        const controls = [...nav.querySelectorAll('a, button'), ...overlay.querySelectorAll('a')]
+          .filter(el => el.getClientRects().length);
+        const index = controls.indexOf(document.activeElement);
+        if ((event.shiftKey && index <= 0) || (!event.shiftKey && index === controls.length - 1)) {
+          event.preventDefault();
+          controls[event.shiftKey ? controls.length - 1 : 0].focus();
+        }
+      }
+    });
+
     syncMenuUi(false);
     window.__moscatelliSyncMenuUi = syncMenuUi;
+
+    // Start the distant feature photo well before it enters the viewport.
+    const feature = document.getElementById('su-misura');
+    const featureObserver = new IntersectionObserver(entries => {
+      if (!entries.some(entry => entry.isIntersecting)) return;
+      feature.style.setProperty('--feature-photo', "url('images/feature-packaging.webp')");
+      featureObserver.disconnect();
+    }, { rootMargin: '1600px 0px' });
+    featureObserver.observe(feature);
 
     // Scroll reveal with stagger
     const reveals = document.querySelectorAll('.reveal');
@@ -2398,14 +2446,15 @@
         const target = document.querySelector(a.getAttribute('href'));
         if (target) {
           e.preventDefault();
-          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          target.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'start' });
         }
       });
     });
 
     // Fallback: reveal all if observer hasn't fired after 1.5s
     setTimeout(() => {
-      document.querySelectorAll('.reveal:not(.in)').forEach(el => el.classList.add('in'));
+      reveals.forEach(el => el.classList.add('in'));
+      io.disconnect();
     }, 1500);
 
     // Submit private consultation requests through Netlify Forms.
@@ -2518,8 +2567,6 @@
         if (!el.closest('.lang-toggle')) el.classList.add('i18n-fade-target');
       });
 
-      const contentFadeTargets = Array.from(document.querySelectorAll('body > section, body > footer, body > .menu-overlay'));
-
       function translateString(source, lang) {
         if (lang !== 'en') return source;
         let output = source;
@@ -2610,6 +2657,10 @@
       function animateLanguageSwitch(lang) {
         const safeLang = lang === 'en' ? 'en' : 'it';
         if (safeLang === currentLang || isLanguageTransitioning) return;
+        if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          applyLanguage(safeLang);
+          return;
+        }
         isLanguageTransitioning = true;
         document.body.classList.add('lang-switching');
         if (langToggle) langToggle.classList.add('is-switching');
@@ -2647,19 +2698,21 @@
       top: 0;
       width: 92px;
       height: 92px;
-      border-radius: 50%;
       pointer-events: none;
-      transform: translate(-50%, -50%) scale(1);
-      transform-origin: center;
       z-index: 99999;
       opacity: 0;
-      will-change: left, top, opacity, transform, filter;
-      transition:
-        opacity 220ms ease,
-        transform 260ms cubic-bezier(.22,.61,.36,1),
-        filter 320ms cubic-bezier(.22,.61,.36,1);
-      filter: blur(12px);
       mix-blend-mode: screen;
+      transition: opacity 220ms ease;
+    }
+    .rr-pointer-glow {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      transform: scale(1);
+      transform-origin: center;
+      filter: blur(12px);
+      transition: transform 260ms cubic-bezier(.22,.61,.36,1),
+                  filter 320ms cubic-bezier(.22,.61,.36,1);
     }
 
     .rr-pl-base,
@@ -2732,10 +2785,9 @@
       opacity: 0.84;
     }
 
-    .rr-pointer-light.is-hover {
-      transform: translate(-50%, -50%) scale(1.18);
-      filter: blur(9px);
-    }
+    .rr-pointer-light.is-hover .rr-pointer-glow { transform: scale(1.18); filter: blur(9px); }
+    .rr-pointer-light.is-pressed .rr-pointer-glow { transform: scale(0.96); }
+    .rr-pointer-light.is-hover.is-pressed .rr-pointer-glow { transform: scale(1.12); }
 
     .rr-pointer-light.is-hover .rr-pl-base {
       opacity: 0.18;
@@ -2771,93 +2823,11 @@
   </style>
 
   <div class="rr-pointer-light" aria-hidden="true">
-    <span class="rr-pl-base"></span>
-    <span class="rr-pl-hover"></span>
+    <span class="rr-pointer-glow">
+      <span class="rr-pl-base"></span>
+      <span class="rr-pl-hover"></span>
+    </span>
   </div>
-
-  <script>
-    (() => {
-      const pointer = document.querySelector('.rr-pointer-light');
-      if (!pointer) return;
-
-      const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
-      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      if (!finePointer || reducedMotion) return;
-
-      document.documentElement.classList.add('has-rr-pointer-light');
-
-      const hoverSelectors = [
-        'a',
-        'button',
-        '[role="button"]',
-        'summary',
-        'label',
-        'input[type="submit"]',
-        'input[type="button"]',
-        '.btn',
-        '.button',
-        '.link',
-        '.nav-link',
-        '[onclick]',
-        '[data-pointer-hover]'
-      ].join(',');
-
-      let mouseX = window.innerWidth / 2;
-      let mouseY = window.innerHeight / 2;
-      let currentX = mouseX;
-      let currentY = mouseY;
-      let rafId = null;
-
-      const render = () => {
-        currentX += (mouseX - currentX) * 0.30;
-        currentY += (mouseY - currentY) * 0.30;
-        pointer.style.left = `${currentX}px`;
-        pointer.style.top = `${currentY}px`;
-        rafId = requestAnimationFrame(render);
-      };
-
-      const updateHoverState = (target) => {
-        const interactive = target && target.closest && target.closest(hoverSelectors);
-        pointer.classList.toggle('is-hover', !!interactive);
-      };
-
-      const showPointer = () => pointer.classList.add('is-visible');
-      const hidePointer = () => pointer.classList.remove('is-visible');
-
-      window.addEventListener('mousemove', (e) => {
-        mouseX = e.clientX;
-        mouseY = e.clientY;
-        showPointer();
-        updateHoverState(e.target);
-        if (!rafId) render();
-      }, { passive: true });
-
-      document.addEventListener('mouseover', (e) => {
-        updateHoverState(e.target);
-      });
-
-      document.addEventListener('mouseout', (e) => {
-        const nextTarget = e.relatedTarget || document.elementFromPoint(mouseX, mouseY);
-        updateHoverState(nextTarget);
-      });
-
-      window.addEventListener('mousedown', () => {
-        pointer.style.transform = pointer.classList.contains('is-hover')
-          ? 'translate(-50%, -50%) scale(1.12)'
-          : 'translate(-50%, -50%) scale(0.96)';
-      });
-
-      window.addEventListener('mouseup', () => {
-        pointer.style.transform = pointer.classList.contains('is-hover')
-          ? 'translate(-50%, -50%) scale(1.18)'
-          : 'translate(-50%, -50%) scale(1)';
-      });
-
-      document.addEventListener('mouseleave', hidePointer);
-      window.addEventListener('blur', hidePointer);
-    })();
-  </script>
-
 
 </body>
 </html>
