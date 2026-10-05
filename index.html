@@ -33,6 +33,7 @@
     /* ── Reset ─────────────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { font-size: 16px; scroll-behavior: smooth; overflow-x: hidden; }
+    body > section[id]:not(.hero) { scroll-margin-top: 80px; }
     body {
       background: var(--black);
       color: var(--ivory);
@@ -83,9 +84,8 @@
                   transform 0.72s cubic-bezier(0.16,1,0.3,1);
     }
     .reveal.in { opacity: 1; transform: translateY(0); }
-    /* Fallback: if JS hasn't run within 1.5s, reveal everything */
-    .no-js .reveal,
-    .reveal-fallback .reveal {
+    /* Keep the document readable without JavaScript. */
+    html:not(.js) .reveal {
       opacity: 1;
       transform: translateY(0);
     }
@@ -158,7 +158,6 @@
     .lang-btn:focus-visible {
       color: rgba(243,237,224,0.86);
       opacity: 1;
-      outline: none;
     }
     .lang-btn.is-active {
       color: rgba(243,237,224,0.84);
@@ -175,7 +174,7 @@
 
     .lang-btn,
     .lang-sep,
-    .i18n-fade-target,
+    .i18n-fade-target:not(.reveal),
     body > section,
     body > footer,
     body > .menu-overlay,
@@ -237,7 +236,10 @@
       z-index: 500;
       background: var(--black);
       display: flex;
-      padding: 130px 56px 80px;
+      padding: 130px 56px max(80px, env(safe-area-inset-bottom));
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scroll-padding-top: 110px;
       pointer-events: none;
       opacity: 0;
       transition: opacity 0.48s ease, visibility 0s linear 0.48s;
@@ -257,6 +259,8 @@
     }
     .menu-inner {
       width: 100%;
+      flex-shrink: 0;
+      align-self: flex-start;
       display: grid;
       grid-template-columns: 1fr 1fr;
       align-items: start;
@@ -1428,7 +1432,8 @@
       }
 
       .hero {
-        min-height: 100svh;
+        height: 100svh;
+        min-height: 320px;
       }
       .rail-l { left: 18px; }
       .rail-r { right: 18px; }
@@ -1747,7 +1752,7 @@
       }
 
       .menu-overlay {
-        padding: 100px 18px 40px;
+        padding: max(100px, calc(env(safe-area-inset-top) + 76px)) max(18px, env(safe-area-inset-right)) max(40px, env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left));
         background: var(--black);
         backdrop-filter: none;
         -webkit-backdrop-filter: none;
@@ -1773,6 +1778,11 @@
         margin-top: 20px;
       }
     }
+
+  @media (min-width: 721px) and (max-width: 1100px) {
+    /* Keep editorial copy clear of the diagonal photograph on tablets. */
+    .feature-content { max-width: 50%; padding: 72px 32px; }
+  }
 
   /* Mobile full-bleed fix: zero manifesto padding so it bleeds edge to edge */
   @media (max-width: 720px) {
@@ -1824,85 +1834,32 @@
     }
 
     @media (max-width: 720px) {
+      body > section[id]:not(.hero) { scroll-margin-top: calc(64px + env(safe-area-inset-top)); }
       nav, nav.scrolled {
-        display: flex !important;
-        align-items: center !important;
-        justify-content: space-between !important;
-        padding: 18px 18px !important;
-        z-index: 1700 !important;
+        padding: max(8px, env(safe-area-inset-top)) max(18px, env(safe-area-inset-right)) 8px max(18px, env(safe-area-inset-left));
+        min-height: 61px;
+        z-index: 1700;
       }
-
-
-      .hamburger {
-        display: none !important;
-      }
-
-      .menu-btn {
-        display: inline-block !important;
-        position: relative !important;
-        z-index: 1800 !important;
-        margin-left: auto !important;
-        min-width: 54px !important;
-        text-align: right !important;
-        color: rgba(227,218,199,0.84) !important;
-        opacity: 1 !important;
-        visibility: visible !important;
-        pointer-events: auto !important;
-        touch-action: manipulation;
-        -webkit-tap-highlight-color: transparent;
-      }
-
-      .nav-tools {
-        gap: 14px !important;
-        margin-left: auto !important;
-      }
-
+      .hamburger { display: none; }
+      .nav-tools { width: 100%; justify-content: space-between; gap: 16px; }
       .lang-toggle {
-        position: absolute !important;
-        top: 50% !important;
-        right: 84px !important;
-        transform: translateY(-50%) !important;
-        font-size: 8px !important;
-        letter-spacing: 0.30em !important;
-        gap: 8px !important;
+        position: static;
+        transform: none;
+        font-size: 8px;
+        letter-spacing: 0.30em;
+        gap: 4px;
       }
-
+      .lang-btn { min-width: 32px; min-height: 44px; padding: 0; margin: 0; }
       .menu-btn {
-        margin-left: 0 !important;
+        display: inline-block;
+        min-width: 80px;
+        min-height: 44px;
+        text-align: right;
+        color: rgba(227,218,199,0.84);
+        touch-action: manipulation;
       }
-
-      .menu-overlay {
-        z-index: 1650 !important;
-      }
+      .menu-overlay { z-index: 1650; }
     }
-
-
-  @media (max-width: 720px) {
-    nav, nav.scrolled {
-      width: 100% !important;
-      max-width: 100% !important;
-      left: 0 !important;
-      right: 0 !important;
-      box-sizing: border-box !important;
-      overflow: hidden !important;
-    }
-
-    .nav-tools {
-      flex: 0 0 auto !important;
-      min-width: 0 !important;
-    }
-
-    .lang-toggle {
-      flex: 0 0 auto !important;
-      white-space: nowrap !important;
-      position: absolute !important;
-    }
-
-    .menu-btn {
-      flex: 0 0 auto !important;
-      position: static !important;
-    }
-  }
 
   /* Usability refinements — preserve the editorial direction while making
      commercial and functional controls easier to discover and read. */
@@ -2376,31 +2333,37 @@
       }
     }
 
-    function toggleMenu() {
-      const open = !overlay.classList.contains('open');
+    const pageContent = [...document.querySelectorAll('body > section, body > footer')];
+    const menuTrigger = () => getComputedStyle(hamburger).display === 'none' ? menuBtn : hamburger;
+    function setMenuOpen(open) {
       hamburger.classList.toggle('open', open);
       overlay.classList.toggle('open', open);
       overlay.inert = !open;
+      document.documentElement.style.overflowY = open ? 'hidden' : '';
       document.body.style.overflow = open ? 'hidden' : '';
+      pageContent.forEach(el => { el.inert = open; });
       syncMenuUi(open);
     }
+    function toggleMenu() { setMenuOpen(!overlay.classList.contains('open')); }
 
     if (hamburger) hamburger.addEventListener('click', toggleMenu);
     if (menuBtn) menuBtn.addEventListener('click', toggleMenu);
 
-    overlay.querySelectorAll('a').forEach(a => {
+    [...overlay.querySelectorAll('a'), nav.querySelector('.nav-emblem')].forEach(a => {
       a.addEventListener('click', () => {
-        hamburger.classList.remove('open');
-        overlay.classList.remove('open');
-        overlay.inert = true;
-        document.body.style.overflow = '';
-        syncMenuUi(false);
+        if (!overlay.classList.contains('open')) return;
+        setMenuOpen(false);
+        menuTrigger().focus({ preventScroll: true });
       });
+    });
+    window.addEventListener('resize', () => {
+      if (overlay.classList.contains('open') &&
+          [menuBtn, hamburger].includes(document.activeElement)) menuTrigger().focus({ preventScroll: true });
     });
 
     document.addEventListener('keydown', event => {
       if (!overlay.classList.contains('open')) return;
-      const trigger = getComputedStyle(hamburger).display === 'none' ? menuBtn : hamburger;
+      const trigger = menuTrigger();
       if (event.key === 'Escape') {
         toggleMenu();
         trigger.focus();
@@ -2408,7 +2371,7 @@
         const controls = [...nav.querySelectorAll('a, button'), ...overlay.querySelectorAll('a')]
           .filter(el => el.getClientRects().length);
         const index = controls.indexOf(document.activeElement);
-        if ((event.shiftKey && index <= 0) || (!event.shiftKey && index === controls.length - 1)) {
+        if ((event.shiftKey && index <= 0) || (!event.shiftKey && (index < 0 || index === controls.length - 1))) {
           event.preventDefault();
           controls[event.shiftKey ? controls.length - 1 : 0].focus();
         }
@@ -2450,13 +2413,6 @@
         }
       });
     });
-
-    // Fallback: reveal all if observer hasn't fired after 1.5s
-    setTimeout(() => {
-      reveals.forEach(el => el.classList.add('in'));
-      io.disconnect();
-    }, 1500);
-
     // Submit private consultation requests through Netlify Forms.
     const consultationForm = document.getElementById('consultation-form');
     const consultationStatus = document.getElementById('consultation-status');
