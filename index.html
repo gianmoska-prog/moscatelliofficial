@@ -5,6 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Moscatelli — Roma</title>
   <script>document.documentElement.classList.add('js');</script>
+  <script>
+    document.documentElement.classList.add('mc-arrival-pending');
+    window.mcArrivalFallback = setTimeout(function () {
+      document.documentElement.classList.remove('mc-arrival-pending', 'mc-arrival-active');
+      document.documentElement.classList.add('mc-arrival-managed');
+    }, 8000);
+  </script>
+  <link rel="stylesheet" href="css/arrival.css" />
+  <script src="js/arrival.js" defer></script>
   <link rel="preload" as="image" href="images/hero-home.webp" fetchpriority="high" />
   <script src="js/pointer-light.js" defer></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -2007,6 +2016,8 @@
   </div>
 
   <!-- ── Hero ─────────────────────────────────────────────── -->
+  <div class="mc-arrival-surface" id="mc-arrival-surface" aria-hidden="true"></div>
+  <button class="mc-arrival-skip" id="mc-arrival-skip" type="button" hidden>Entrare nel sito</button>
   <section class="hero" id="hero">
     <div class="hero-canvas"></div>
     <div class="rail rail-l"></div>
