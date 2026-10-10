@@ -1,0 +1,24 @@
+/* Il Cerchio: a precise ivory ring, opening gently around an action. */
+.rr-pointer-light.mc-circle {
+  width: 64px;
+  height: 64px;
+  color: #ece3d1;
+  mix-blend-mode: difference;
+  transition: opacity 120ms ease;
+}
+.mc-circle svg { display: block; width: 64px; height: 64px; overflow: visible; }
+.mc-circle circle {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: .9;
+  vector-effect: non-scaling-stroke;
+  transform-origin: 32px 32px;
+  transition: transform 420ms cubic-bezier(.19,1,.22,1);
+}
+.rr-pointer-light.mc-circle.is-visible { opacity: 1; }
+.mc-circle.is-hover circle { transform: scale(2.142857); }
+.mc-circle.is-pressed circle { transform: scale(.75); }
+.mc-circle.is-hover.is-pressed circle { transform: scale(1.607143); }
+@media (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) {
+  .rr-pointer-light.mc-circle { display: none !important; }
+}
