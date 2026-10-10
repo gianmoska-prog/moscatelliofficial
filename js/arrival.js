@@ -6,7 +6,7 @@
   const origin = document.querySelector('.hero-slogan');
   const skip = document.getElementById('mc-arrival-skip');
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
-  const GRACE = 180, ILLUMINATION = 1300, DISSOLVE = 750;
+  const ILLUMINATION = 1300, DISSOLVE = 750;
   let started = false, ready = false, illuminated = false, released = false;
   let animations = [];
   const timers = [];
@@ -15,6 +15,7 @@
   function finish() {
     if (released) return;
     released = true;
+    root.dataset.mcArrival = 'complete';
     timers.forEach(clearTimeout);
     animations.forEach(animation => animation.cancel());
     animations = [];
@@ -46,7 +47,7 @@
 
   function start() {
     if (released) return;
-    if (ready || reduced.matches || !word || !surface || !word.animate) { finish(); return; }
+    if (reduced.matches || !word || !surface || !word.animate) { finish(); return; }
     started = true;
     root.classList.remove('mc-arrival-pending');
     root.classList.add('mc-arrival-managed', 'mc-arrival-active');
@@ -106,9 +107,8 @@
   Promise.all([heroReady, fontReady]).then(() => {
     if (released) return;
     ready = true;
-    if (!started) { finish(); return; }
     releaseIfReady();
   });
-  // Start after the fast-load grace window; do not expose a replacement font mid-reveal.
-  Promise.all([fontReady, new Promise(resolve => later(resolve, GRACE))]).then(start).catch(finish);
+  // Always complete the signature, even on cached loads. Wait only for its font.
+  fontReady.then(start).catch(finish);
 })();
